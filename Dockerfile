@@ -12,6 +12,7 @@ RUN pnpm install --frozen-lockfile
 
 # Stage 3: Build application
 FROM base AS builder
+RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
