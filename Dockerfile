@@ -1,20 +1,12 @@
-# Stage 1: Base image
-FROM node:20-alpine AS base
-RUN apk add --no-cache libc6-compat
+# Stage 1: Build application
+FROM node:20-alpine AS builder
+RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-# Stage 2: Install dependencies
-FROM base AS deps
-RUN apk add --no-cache python3 make g++
 RUN npm install -g pnpm@9
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --no-frozen-lockfile
 
-# Stage 3: Build application
-FROM base AS builder
-RUN apk add --no-cache python3 make g++
-RUN npm install -g pnpm@9
-COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
@@ -22,8 +14,9 @@ ENV NODE_ENV=production
 
 RUN pnpm run build
 
-# Stage 4: Production runner
+# Stage 2: Production runner
 FROM node:20-alpine AS runner
+RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
 ENV NODE_ENV=production
