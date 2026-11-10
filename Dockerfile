@@ -13,7 +13,7 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-RUN pnpm run build
+RUN npx next build
 
 # Stage 2: Production runner
 FROM node:20-alpine AS runner
