@@ -3,7 +3,7 @@ FROM node:20-alpine AS builder
 RUN apk add --no-cache libc6-compat python3 make g++
 WORKDIR /app
 
-RUN npm install -g pnpm@9
+RUN npm install -g pnpm && pnpm config set update-notifier false
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --no-frozen-lockfile
 RUN pnpm rebuild better-sqlite3
