@@ -9,8 +9,48 @@ let mockCpu1Temp = 42;
 let mockCpu2Temp = 44;
 let mockAmbientTemp = 25;
 
-// Helper thực hiện GET request qua HTTPS bỏ qua chứng chỉ tự ký (Self-signed certificate) của iLO
-function httpsGetJson(urlStr: string, authHeader: string, timeoutMs = 7000): Promise<Record<string, unknown>> {
+// Cấu hình các thuật toán mã hóa tương thích với chip HP iLO 4
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const ILO_SSH_ALGORITHMS: any = {
+  kex: [
+    "diffie-hellman-group14-sha1",
+    "diffie-hellman-group-exchange-sha1",
+    "diffie-hellman-group1-sha1",
+    "diffie-hellman-group14-sha256",
+    "diffie-hellman-group16-sha512",
+    "diffie-hellman-group18-sha512",
+    "ecdh-sha2-nistp256",
+    "ecdh-sha2-nistp384",
+    "ecdh-sha2-nistp521",
+  ],
+  cipher: [
+    "aes128-ctr",
+    "aes192-ctr",
+    "aes256-ctr",
+    "aes128-gcm",
+    "aes256-gcm",
+    "aes128-cbc",
+    "aes192-cbc",
+    "aes256-cbc",
+    "3des-cbc",
+  ],
+  serverHostKey: [
+    "ssh-rsa",
+    "ssh-dss",
+    "rsa-sha2-256",
+    "rsa-sha2-512",
+    "ecdsa-sha2-nistp256",
+    "ecdsa-sha2-nistp384",
+    "ecdsa-sha2-nistp521",
+  ],
+};
+
+// Helper thực hiện GET request qua HTTPS bỏ qua chứng chỉ tự ký và tự động xử lý chuyển hướng (301, 302, 307, 308)
+function httpsGetJson(urlStr: string, authHeader: string, timeoutMs = 8000, redirectCount = 0): Promise<Record<string, unknown>> {
+  if (redirectCount > 5) {
+    return Promise.reject(new Error("Quá nhiều lần chuyển hướng (Redirect loop) từ iLO"));
+  }
+
   return new Promise((resolve, reject) => {
     try {
       const parsedUrl = new URL(urlStr);
@@ -28,6 +68,19 @@ function httpsGetJson(urlStr: string, authHeader: string, timeoutMs = 7000): Pro
           timeout: timeoutMs,
         },
         (res) => {
+          // Tự động chuyển hướng khi iLO trả về 301, 302, 307, 308
+          if (res.statusCode && [301, 302, 303, 307, 308].includes(res.statusCode)) {
+            const redirectLocation = res.headers.location;
+            if (redirectLocation) {
+              const nextUrl = redirectLocation.startsWith("http")
+                ? redirectLocation
+                : `https://${parsedUrl.hostname}:${parsedUrl.port || 443}${redirectLocation}`;
+              return httpsGetJson(nextUrl, authHeader, timeoutMs, redirectCount + 1)
+                .then(resolve)
+                .catch(reject);
+            }
+          }
+
           if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
             return reject(new Error(`iLO HTTP ${res.statusCode}: ${res.statusMessage || "Lỗi truy vấn"}`));
           }
@@ -257,7 +310,8 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
         port: config.sshPort || 22,
         username: config.username,
         password: config.password,
-        readyTimeout: 8000,
+        readyTimeout: 10000,
+        algorithms: ILO_SSH_ALGORITHMS,
       });
   });
 }
@@ -352,7 +406,8 @@ export async function testIloConnection(customConfig?: Partial<IloConfig>): Prom
         port: config.sshPort || 22,
         username: config.username,
         password: config.password,
-        readyTimeout: 6000,
+        readyTimeout: 10000,
+        algorithms: ILO_SSH_ALGORITHMS,
       });
   });
 
