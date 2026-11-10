@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getPresets, savePresets } from "@/lib/storage";
-import { FanPreset } from "@/types";
+import { getPresets, savePresets } from "../../../../lib/storage";
+import { FanPreset } from "../../../../types";
 
 export async function GET() {
   const presets = getPresets();
@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
 
     if (body.action === "delete" && body.id) {
       let presets = getPresets();
-      presets = presets.filter((p) => p.id !== body.id);
+      presets = presets.filter((p: FanPreset) => p.id !== body.id);
       savePresets(presets);
       return NextResponse.json({ success: true, presets });
     }

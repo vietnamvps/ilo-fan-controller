@@ -78,9 +78,8 @@ export default function FanCard({
           <svg
             className="w-24 h-24 fan-spinning z-10"
             style={{
-              // @ts-expect-error CSS custom variable
               "--spin-duration": `${spinDuration}s`,
-            }}
+            } as React.CSSProperties}
             viewBox="0 0 100 100"
             fill="none"
           >

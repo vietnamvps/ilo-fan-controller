@@ -1,13 +1,16 @@
 import { SignJWT, jwtVerify } from "jose";
 import bcrypt from "bcryptjs";
 import { cookies } from "next/headers";
-import { getAuthConfig, saveAuthConfig } from "./storage";
+import { getAuthConfig, updateAdminPassword } from "./storage";
 
 const COOKIE_NAME = "ilo_fan_auth";
 
 export async function authenticateUser(username: string, password: string): Promise<string | null> {
   const auth = getAuthConfig();
-  
+  if (!auth) {
+    return null;
+  }
+
   if (username !== auth.username) {
     return null;
   }
@@ -31,6 +34,7 @@ export async function authenticateUser(username: string, password: string): Prom
 export async function verifySessionToken(token: string): Promise<boolean> {
   try {
     const auth = getAuthConfig();
+    if (!auth) return false;
     const secret = new TextEncoder().encode(auth.jwtSecret);
     const { payload } = await jwtVerify(token, secret);
     return payload.username === auth.username;
@@ -47,19 +51,7 @@ export async function isAuthenticated(): Promise<boolean> {
 }
 
 export function updatePassword(newPassword: string, newUsername?: string): boolean {
-  try {
-    const auth = getAuthConfig();
-    const salt = bcrypt.genSaltSync(10);
-    auth.passwordHash = bcrypt.hashSync(newPassword, salt);
-    if (newUsername) {
-      auth.username = newUsername.trim();
-    }
-    saveAuthConfig(auth);
-    return true;
-  } catch (err) {
-    console.error("Failed to update password:", err);
-    return false;
-  }
+  return updateAdminPassword(newPassword, newUsername);
 }
 
 export { COOKIE_NAME };

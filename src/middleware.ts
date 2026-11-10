@@ -4,27 +4,29 @@ import type { NextRequest } from "next/server";
 export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Paths that are publicly accessible
+  // Public paths
   const isPublicPath =
     pathname.startsWith("/login") ||
+    pathname.startsWith("/setup") ||
     pathname.startsWith("/api/auth/login") ||
+    pathname.startsWith("/api/auth/setup") ||
+    pathname.startsWith("/api/auth/status") ||
     pathname.startsWith("/_next") ||
     pathname.startsWith("/favicon.ico");
 
   const token = request.cookies.get("ilo_fan_auth")?.value;
 
-  // If visiting login page and already has token, allow them to enter, or let page handle
-  if (pathname === "/login" && token) {
+  // If authenticated and visiting /login or /setup, go to dashboard
+  if ((pathname === "/login" || pathname === "/setup") && token) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
-  // If not a public path and no token exists, redirect to /login
+  // If not public and no session token, redirect to /login
   if (!isPublicPath && !token) {
     if (pathname.startsWith("/api/")) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
-    const loginUrl = new URL("/login", request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL("/login", request.url));
   }
 
   return NextResponse.next();

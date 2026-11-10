@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getIloConfig, saveIloConfig } from "@/lib/storage";
+import { getIloConfig, saveIloConfig } from "../../../../lib/storage";
 
 export async function GET() {
   const config = getIloConfig();

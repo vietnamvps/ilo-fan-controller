@@ -18,8 +18,14 @@ pnpm-debug.log*
 .env
 .env*.local
 
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
 # local persistent storage (không commit mật khẩu hay config nhạy cảm)
 data/*.json
+data/*.db*
+data/*.sqlite*
 !data/.gitkeep
 
 # OS files

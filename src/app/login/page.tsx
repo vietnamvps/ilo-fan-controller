@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Server, Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
 
@@ -11,6 +11,28 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [checkingSetup, setCheckingSetup] = useState(true);
+
+  // Check if system needs initial setup
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const res = await fetch("/api/auth/status");
+        if (res.ok) {
+          const data = await res.json();
+          if (data.needsSetup) {
+            router.replace("/setup");
+            return;
+          }
+        }
+      } catch (err) {
+        console.error("Status check error:", err);
+      } finally {
+        setCheckingSetup(false);
+      }
+    }
+    checkStatus();
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -39,10 +61,16 @@ export default function LoginPage() {
     }
   };
 
-  const handleUseDefault = () => {
-    setUsername("admin");
-    setPassword("admin123");
-  };
+  if (checkingSetup) {
+    return (
+      <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
+        <div className="flex items-center space-x-3 text-emerald-400">
+          <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
+          <span className="text-sm font-medium">Đang tải...</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12">
@@ -91,7 +119,7 @@ export default function LoginPage() {
                   required
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="admin"
+                  placeholder="Nhập tên tài khoản admin"
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
               </div>
@@ -138,20 +166,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          {/* Default Credentials Helper */}
-          <div className="mt-6 pt-5 border-t border-gray-800 text-center">
-            <p className="text-xs text-gray-400">
-              Tài khoản mặc định: <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">admin</code> / <code className="text-emerald-400 bg-emerald-500/10 px-1.5 py-0.5 rounded">admin123</code>
-            </p>
-            <button
-              type="button"
-              onClick={handleUseDefault}
-              className="mt-2 text-xs text-teal-400 hover:text-teal-300 underline font-medium"
-            >
-              Điền tài khoản mặc định tự động
-            </button>
-          </div>
         </div>
 
         {/* Footer info */}

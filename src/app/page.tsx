@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
-import Header from "@/components/Header";
-import FanCard from "@/components/FanCard";
-import ThermalGrid from "@/components/ThermalGrid";
-import ActionLogs from "@/components/ActionLogs";
+import Header from "../components/Header";
+import FanCard from "../components/FanCard";
+import ThermalGrid from "../components/ThermalGrid";
+import ActionLogs from "../components/ActionLogs";
 import {
   Server,
   Zap,
@@ -96,12 +96,27 @@ export default function DashboardPage() {
     }
   }, []);
 
+  const checkSetupStatus = useCallback(async () => {
+    try {
+      const res = await fetch("/api/auth/status");
+      if (res.ok) {
+        const data = await res.json();
+        if (data.needsSetup) {
+          window.location.href = "/setup";
+        }
+      }
+    } catch (err) {
+      console.error("Setup check error:", err);
+    }
+  }, []);
+
   // Initial load
   useEffect(() => {
+    checkSetupStatus();
     fetchThermal();
     fetchPresetsAndConfig();
     addLog("Hệ thống khởi chạy - Đang giám sát HPE ProLiant DL380 Gen9 qua iLO 4", "info");
-  }, [fetchThermal, fetchPresetsAndConfig, addLog]);
+  }, [checkSetupStatus, fetchThermal, fetchPresetsAndConfig, addLog]);
 
   // Auto-refresh interval (5s)
   useEffect(() => {

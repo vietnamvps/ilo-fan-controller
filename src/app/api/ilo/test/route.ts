@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { testIloConnection } from "@/lib/ilo";
+import { testIloConnection } from "../../../../lib/ilo";
 
 export async function POST() {
   try {

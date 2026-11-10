@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { fetchServerThermal } from "@/lib/ilo";
+import { fetchServerThermal } from "../../../../lib/ilo";
 
 export async function GET() {
   try {

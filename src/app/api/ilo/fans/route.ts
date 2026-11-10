@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setFanSpeeds } from "@/lib/ilo";
-import { getIloConfig } from "@/lib/storage";
+import { setFanSpeeds } from "../../../../lib/ilo";
+import { getIloConfig } from "../../../../lib/storage";
 
 export async function POST(req: NextRequest) {
   try {

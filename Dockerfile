@@ -3,8 +3,9 @@ FROM node:20-alpine AS base
 RUN apk add --no-cache libc6-compat
 WORKDIR /app
 
-# Stage 2: Install dependencies
+# Stage 2: Install dependencies with build tools for native addons (better-sqlite3)
 FROM base AS deps
+RUN apk add --no-cache python3 make g++
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --frozen-lockfile
@@ -29,7 +30,7 @@ ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
-# Cài đặt quyền hạn và thư mục lưu trữ dữ liệu
+# Cài đặt quyền hạn và thư mục lưu trữ SQLite
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 nextjs && \
     mkdir -p /app/data && \
@@ -38,6 +39,9 @@ RUN addgroup --system --gid 1001 nodejs && \
 # Sao chép các tệp đã build từ builder
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
+
+# Đảm bảo native bindings của better-sqlite3 được sao chép đầy đủ
+COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 
 # Đảm bảo thư mục public tồn tại
 RUN mkdir -p /app/public && chown -R nextjs:nodejs /app/public

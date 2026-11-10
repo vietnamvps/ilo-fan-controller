@@ -2,7 +2,7 @@
 const nextConfig = {
   output: "standalone",
   experimental: {
-    serverComponentsExternalPackages: ["ssh2"],
+    serverComponentsExternalPackages: ["ssh2", "better-sqlite3"],
   },
 };
 
