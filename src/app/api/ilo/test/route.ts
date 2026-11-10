@@ -1,11 +1,21 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { testIloConnection } from "../../../../lib/ilo";
 
 export const dynamic = "force-dynamic";
 
-export async function POST() {
+export async function POST(req: NextRequest) {
   try {
-    const result = await testIloConnection();
+    let customConfig = undefined;
+    try {
+      const body = await req.json();
+      if (body && typeof body === "object") {
+        customConfig = body;
+      }
+    } catch {
+      // Body is optional
+    }
+
+    const result = await testIloConnection(customConfig);
     return NextResponse.json(result);
   } catch (err: unknown) {
     return NextResponse.json(

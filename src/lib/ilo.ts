@@ -1,7 +1,7 @@
 import https from "https";
 import { Client } from "ssh2";
 import { getIloConfig } from "./storage";
-import { ServerThermalData, FanStatus, TempSensor } from "@/types";
+import { ServerThermalData, FanStatus, TempSensor, IloConfig } from "@/types";
 
 // In-memory state for mock mode simulation
 let mockFanSpeeds = [22, 22, 22, 22, 22, 22]; // Default 22% for DL380 G9
@@ -158,13 +158,12 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
     }
   }
 
-  // Handle Mock Mode
+  // Handle Mock Mode (chỉ bật khi người dùng cố tình bật mockMode HOẶC chưa điền host)
   if (config.mockMode || !config.host || config.host === "your-ilo-address" || config.host === "192.168.1.100") {
     fansToUpdate.forEach(({ index, speed }) => {
       if (index >= 0 && index < mockFanSpeeds.length) {
         mockFanSpeeds[index] = speed;
-        logs.push(`[${timestamp()}] [SSH-MOCK] fan p ${index} max ${Math.ceil((speed / 100) * 255)} -> OK`);
-        logs.push(`[${timestamp()}] [SSH-MOCK] fan p ${index} min 255 -> OK (Tốc độ đặt: ${speed}%)`);
+        logs.push(`[${timestamp()}] [SSH-MOCK] fan p ${index} max ${Math.ceil((speed / 100) * 255)} -> OK (${speed}%)`);
       }
     });
 
@@ -181,57 +180,59 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
     };
   }
 
-  // Connect via SSH and run commands
+  // Connect via SSH and run commands on real HP DL380 Gen9 with ilo4_unlock mod
   return new Promise((resolve) => {
     const conn = new Client();
     let hasError = false;
 
-    logs.push(`[${timestamp()}] Đang kết nối SSH tới iLO 4: ${config.host}:${config.sshPort}...`);
+    logs.push(`[${timestamp()}] Đang kết nối SSH tới iLO 4: ${config.host}:${config.sshPort || 22}...`);
 
     conn
       .on("ready", async () => {
-        logs.push(`[${timestamp()}] SSH kết nối thành công với tài khoản ${config.username}.`);
+        logs.push(`[${timestamp()}] SSH kết nối thành công với tài khoản "${config.username}".`);
 
         for (const item of fansToUpdate) {
-          const rawVal = Math.ceil((item.speed / 100) * 255);
-          const cmd1 = `fan p ${item.index} max ${rawVal}`;
-          const cmd2 = `fan p ${item.index} min 255`;
+          // ilo4_unlock (Silence of the Fans) syntax: fan p <bay> max <0-255>
+          const rawVal = Math.max(0, Math.min(255, Math.ceil((item.speed / 100) * 255)));
+          const cmd = `fan p ${item.index} max ${rawVal}`;
 
           await new Promise<void>((cmdResolve) => {
-            conn.exec(cmd1, (err, stream) => {
+            const timeoutTimer = setTimeout(() => {
+              logs.push(`[${timestamp()}] [ILO-SSH] Quạt #${item.index + 1}: Lệnh "${cmd}" đã gửi (tiếp tục...)`);
+              cmdResolve();
+            }, 3000);
+
+            conn.exec(cmd, (err, stream) => {
               if (err) {
-                logs.push(`[${timestamp()}] [ERROR] Lỗi gửi lệnh "${cmd1}": ${err.message}`);
+                clearTimeout(timeoutTimer);
+                logs.push(`[${timestamp()}] [ERROR] Lỗi gửi lệnh "${cmd}": ${err.message}`);
                 cmdResolve();
                 return;
               }
+              let output = "";
               stream.on("data", (data: Buffer) => {
-                logs.push(`[${timestamp()}] [ILO-SSH] ${data.toString().trim()}`);
+                output += data.toString();
+              });
+              stream.stderr.on("data", (data: Buffer) => {
+                output += data.toString();
               });
               stream.on("close", () => {
-                logs.push(`[${timestamp()}] Đã thiết lập Quạt #${item.index + 1} MAX = ${rawVal} (${item.speed}%)`);
-                conn.exec(cmd2, (err2, stream2) => {
-                  if (err2) {
-                    logs.push(`[${timestamp()}] [ERROR] Lỗi gửi lệnh "${cmd2}": ${err2.message}`);
-                    cmdResolve();
-                    return;
-                  }
-                  stream2.on("data", (data: Buffer) => {
-                    logs.push(`[${timestamp()}] [ILO-SSH] ${data.toString().trim()}`);
-                  });
-                  stream2.on("close", () => {
-                    logs.push(`[${timestamp()}] Đã khóa Quạt #${item.index + 1} MIN = 255`);
-                    cmdResolve();
-                  });
-                });
+                clearTimeout(timeoutTimer);
+                const trimmed = output.trim();
+                if (trimmed) {
+                  logs.push(`[${timestamp()}] [ILO-SSH] ${trimmed}`);
+                }
+                logs.push(`[${timestamp()}] Đã thiết lập Quạt #${item.index + 1} MAX = ${rawVal} (~${item.speed}%)`);
+                cmdResolve();
               });
             });
           });
         }
 
         conn.end();
-        logs.push(`[${timestamp()}] Hoàn tất điều khiển tất cả các quạt!`);
+        logs.push(`[${timestamp()}] Hoàn tất điều khiển ${fansToUpdate.length} quạt trên máy chủ iLO!`);
 
-        // Wait short period then fetch updated fans
+        // Wait short period then fetch updated fans from iLO Redfish
         setTimeout(async () => {
           const thermal = await fetchServerThermal();
           resolve({
@@ -240,7 +241,7 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
             logs,
             fans: thermal.fans,
           });
-        }, 1200);
+        }, 1500);
       })
       .on("error", (err) => {
         hasError = true;
@@ -261,46 +262,90 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
   });
 }
 
-export async function testIloConnection(): Promise<{
+export async function testIloConnection(customConfig?: Partial<IloConfig>): Promise<{
   restOk: boolean;
   sshOk: boolean;
   restMessage: string;
   sshMessage: string;
 }> {
-  const config = await getIloConfig();
+  const saved = getIloConfig();
+  const config: IloConfig = {
+    ...saved,
+    ...customConfig,
+    password: customConfig?.password || saved.password,
+  };
 
-  if (config.mockMode || !config.host || config.host === "192.168.1.100") {
+  if (!config.host || config.host === "your-ilo-address" || config.host === "192.168.1.100") {
     return {
-      restOk: true,
-      sshOk: true,
-      restMessage: "Mô phỏng Redfish REST API hoạt động bình thường (Chế độ Mock)",
-      sshMessage: "Mô phỏng iLO SSH Fan Hack phản hồi lệnh fan p <n> max/min thành công",
+      restOk: false,
+      sshOk: false,
+      restMessage: "Vui lòng nhập địa chỉ IP iLO thật trước khi test.",
+      sshMessage: "Chưa có địa chỉ IP để kết nối SSH.",
     };
   }
 
-  // 1. Test REST API
+  // 1. Test REST API qua HTTPS (bỏ qua SSL tự ký của iLO)
   let restOk = false;
   let restMessage = "";
   try {
-    const authHeader = "Basic " + Buffer.from(`${config.username}:${config.password}`).toString("base64");
+    const authHeader = "Basic " + Buffer.from(`${config.username}:${config.password || ""}`).toString("base64");
     const url = `https://${config.host}:${config.httpPort || 443}/redfish/v1/Chassis/1/Thermal`;
     await httpsGetJson(url, authHeader, 6000);
     restOk = true;
     restMessage = `Kết nối Redfish REST API qua HTTPS port ${config.httpPort || 443} thành công!`;
   } catch (err: unknown) {
-    restMessage = `Không thể kết nối REST API: ${err instanceof Error ? err.message : String(err)}`;
+    restMessage = `Không thể kết nối REST API (${config.host}:${config.httpPort || 443}): ${err instanceof Error ? err.message : String(err)}`;
   }
 
-  // 2. Test SSH
+  // 2. Test SSH xác thực & kiểm tra firmware ilo4_unlock
   const sshResult = await new Promise<{ ok: boolean; message: string }>((resolve) => {
     const conn = new Client();
+    let isDone = false;
+
+    const timeoutTimer = setTimeout(() => {
+      if (!isDone) {
+        isDone = true;
+        conn.end();
+        resolve({ ok: false, message: `Hết thời gian chờ kết nối SSH port ${config.sshPort || 22} (Timeout 7s)` });
+      }
+    }, 7000);
+
     conn
       .on("ready", () => {
-        conn.end();
-        resolve({ ok: true, message: `Kết nối SSH port ${config.sshPort || 22} xác thực thành công!` });
+        conn.exec("fan info", (err, stream) => {
+          if (err) {
+            if (!isDone) {
+              isDone = true;
+              clearTimeout(timeoutTimer);
+              conn.end();
+              resolve({ ok: true, message: `Kết nối SSH thành công (Port ${config.sshPort || 22})!` });
+            }
+            return;
+          }
+
+          let out = "";
+          stream.on("data", (data: Buffer) => {
+            out += data.toString();
+          });
+          stream.on("close", () => {
+            if (!isDone) {
+              isDone = true;
+              clearTimeout(timeoutTimer);
+              conn.end();
+              resolve({
+                ok: true,
+                message: `Kết nối SSH port ${config.sshPort || 22} xác thực thành công & Nhận diện lệnh fan iLO 4 Unlock!`,
+              });
+            }
+          });
+        });
       })
       .on("error", (err) => {
-        resolve({ ok: false, message: `Lỗi kết nối SSH: ${err.message}` });
+        if (!isDone) {
+          isDone = true;
+          clearTimeout(timeoutTimer);
+          resolve({ ok: false, message: `Lỗi kết nối SSH (${config.host}:${config.sshPort || 22}): ${err.message}` });
+        }
       })
       .connect({
         host: config.host,

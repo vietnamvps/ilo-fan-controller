@@ -128,9 +128,18 @@ export default function SettingsPage() {
     setTestResult(null);
 
     try {
-      const res = await fetch("/api/ilo/test", { method: "POST" });
+      const res = await fetch("/api/ilo/test", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(config),
+      });
       const data = await res.json();
       setTestResult(data);
+
+      // Nếu test SSH thành công và đang bật mockMode, gợi ý hoặc tự động tắt mockMode
+      if (data.sshOk && config.mockMode) {
+        setConfig((prev) => ({ ...prev, mockMode: false }));
+      }
     } catch (err: unknown) {
       setTestResult({
         restOk: false,
@@ -390,14 +399,27 @@ export default function SettingsPage() {
                   </div>
 
                   {/* Mock Mode Switch */}
-                  <div className="mt-4 p-4 rounded-xl bg-gray-900/60 border border-gray-800 flex items-center justify-between">
+                  <div className={`mt-4 p-4 rounded-xl border flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+                    config.mockMode
+                      ? "bg-amber-500/10 border-amber-500/30"
+                      : "bg-gray-900/60 border-gray-800"
+                  }`}>
                     <div>
-                      <h4 className="text-sm font-semibold text-white">Chế độ Mô phỏng (Mock Simulation)</h4>
-                      <p className="text-xs text-gray-400">
-                        Bật khi thử nghiệm giao diện hoặc khi server thật đang tắt nguồn / bảo trì.
+                      <div className="flex items-center space-x-2">
+                        <h4 className="text-sm font-semibold text-white">Chế độ Mô phỏng (Mock Simulation)</h4>
+                        {config.mockMode && (
+                          <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            Đang Bật
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {config.mockMode
+                          ? "⚠️ Đang bật: Hệ thống sẽ KHÔNG gửi lệnh SSH đến máy chủ thật. Hãy TẮT nút này để điều khiển quạt thật của HP DL380 Gen9."
+                          : "Bật khi thử nghiệm giao diện hoặc khi server thật đang tắt nguồn / bảo trì."}
                       </p>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
+                    <label className="relative inline-flex items-center cursor-pointer shrink-0">
                       <input
                         type="checkbox"
                         checked={config.mockMode}
