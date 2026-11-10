@@ -5,7 +5,7 @@ import { FanPreset } from "../../../../types";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const presets = getPresets();
+  const presets = await getPresets();
   return NextResponse.json(presets);
 }
 
@@ -15,12 +15,12 @@ export async function POST(req: NextRequest) {
 
     if (Array.isArray(body)) {
       // Overwrite all presets
-      savePresets(body as FanPreset[]);
+      await savePresets(body as FanPreset[]);
       return NextResponse.json({ success: true, presets: body });
     }
 
     if (body.action === "add" && body.preset) {
-      const presets = getPresets();
+      const presets = await getPresets();
       const newPreset: FanPreset = {
         id: "preset-" + Date.now(),
         name: body.preset.name || "Custom Preset",
@@ -29,14 +29,14 @@ export async function POST(req: NextRequest) {
         icon: body.preset.icon || "Sliders",
       };
       presets.push(newPreset);
-      savePresets(presets);
+      await savePresets(presets);
       return NextResponse.json({ success: true, presets });
     }
 
     if (body.action === "delete" && body.id) {
-      let presets = getPresets();
+      let presets = await getPresets();
       presets = presets.filter((p: FanPreset) => p.id !== body.id);
-      savePresets(presets);
+      await savePresets(presets);
       return NextResponse.json({ success: true, presets });
     }
 

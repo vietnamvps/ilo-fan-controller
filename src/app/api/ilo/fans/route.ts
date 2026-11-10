@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const config = getIloConfig();
+    const config = await getIloConfig();
 
     let fansToUpdate: { index: number; speed: number }[] = [];
 

@@ -6,7 +6,7 @@ import bcrypt from "bcryptjs";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const auth = getAuthConfig();
+  const auth = await getAuthConfig();
   if (!auth) {
     return NextResponse.json({ error: "Chưa khởi tạo admin" }, { status: 404 });
   }
@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mật khẩu mới phải có ít nhất 6 ký tự" }, { status: 400 });
     }
 
-    const auth = getAuthConfig();
+    const auth = await getAuthConfig();
     if (!auth) {
       return NextResponse.json({ error: "Hệ thống chưa được thiết lập tài khoản admin" }, { status: 400 });
     }
@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mật khẩu hiện tại không đúng" }, { status: 401 });
     }
 
-    const success = updatePassword(newPassword, newUsername);
+    const success = await updatePassword(newPassword, newUsername);
     if (!success) {
       return NextResponse.json({ error: "Không thể cập nhật mật khẩu" }, { status: 500 });
     }

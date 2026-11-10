@@ -6,7 +6,7 @@ import { getAuthConfig, updateAdminPassword } from "./storage";
 const COOKIE_NAME = "ilo_fan_auth";
 
 export async function authenticateUser(username: string, password: string): Promise<string | null> {
-  const auth = getAuthConfig();
+  const auth = await getAuthConfig();
   if (!auth) {
     return null;
   }
@@ -33,7 +33,7 @@ export async function authenticateUser(username: string, password: string): Prom
 
 export async function verifySessionToken(token: string): Promise<boolean> {
   try {
-    const auth = getAuthConfig();
+    const auth = await getAuthConfig();
     if (!auth) return false;
     const secret = new TextEncoder().encode(auth.jwtSecret);
     const { payload } = await jwtVerify(token, secret);
@@ -50,8 +50,8 @@ export async function isAuthenticated(): Promise<boolean> {
   return await verifySessionToken(token);
 }
 
-export function updatePassword(newPassword: string, newUsername?: string): boolean {
-  return updateAdminPassword(newPassword, newUsername);
+export async function updatePassword(newPassword: string, newUsername?: string): Promise<boolean> {
+  return await updateAdminPassword(newPassword, newUsername);
 }
 
 export { COOKIE_NAME };

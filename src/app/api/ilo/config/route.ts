@@ -4,7 +4,7 @@ import { getIloConfig, saveIloConfig } from "../../../../lib/storage";
 export const dynamic = "force-dynamic";
 
 export async function GET() {
-  const config = getIloConfig();
+  const config = await getIloConfig();
   return NextResponse.json({
     host: config.host,
     sshPort: config.sshPort,
@@ -20,7 +20,7 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const current = getIloConfig();
+    const current = await getIloConfig();
     const body = await req.json();
 
     const updated = {
@@ -29,7 +29,6 @@ export async function POST(req: NextRequest) {
       sshPort: Number(body.sshPort) || 22,
       httpPort: Number(body.httpPort) || 443,
       username: typeof body.username === "string" ? body.username.trim() : current.username,
-      // Only overwrite password if provided
       password: typeof body.password === "string" && body.password.length > 0 ? body.password : current.password,
       minFanSpeed: Math.max(10, Math.min(100, Number(body.minFanSpeed) || 15)),
       maxFanSpeed: Math.max(50, Math.min(100, Number(body.maxFanSpeed) || 100)),
@@ -37,7 +36,7 @@ export async function POST(req: NextRequest) {
       autoRefreshInterval: Math.max(2, Math.min(60, Number(body.autoRefreshInterval) || 5)),
     };
 
-    saveIloConfig(updated);
+    await saveIloConfig(updated);
     return NextResponse.json({ success: true, message: "Đã lưu cấu hình iLO thành công!" });
   } catch (err: unknown) {
     return NextResponse.json(

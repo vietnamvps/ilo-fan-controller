@@ -10,7 +10,7 @@ let mockCpu2Temp = 44;
 let mockAmbientTemp = 25;
 
 export async function fetchServerThermal(): Promise<ServerThermalData> {
-  const config = getIloConfig();
+  const config = await getIloConfig();
 
   // If in mock mode or host is not properly configured, return simulated HP DL380 G9 data
   if (config.mockMode || !config.host || config.host === "your-ilo-address" || config.host === "192.168.1.100") {
@@ -105,7 +105,7 @@ export interface SetFanResult {
 }
 
 export async function setFanSpeeds(fansToUpdate: { index: number; speed: number }[]): Promise<SetFanResult> {
-  const config = getIloConfig();
+  const config = await getIloConfig();
   const logs: string[] = [];
   const timestamp = () => new Date().toLocaleTimeString();
 
@@ -229,7 +229,7 @@ export async function testIloConnection(): Promise<{
   restMessage: string;
   sshMessage: string;
 }> {
-  const config = getIloConfig();
+  const config = await getIloConfig();
 
   if (config.mockMode || !config.host || config.host === "192.168.1.100") {
     return {
