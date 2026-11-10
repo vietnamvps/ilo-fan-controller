@@ -19,7 +19,8 @@ export function getDb(): Database.Database {
     }
 
     dbInstance = new Database(DB_PATH);
-    dbInstance.pragma("journal_mode = WAL");
+    // Use standard journal mode for highest compatibility with Docker mounted volumes
+    dbInstance.pragma("journal_mode = DELETE");
 
     initDb(dbInstance);
     return dbInstance;
