@@ -6,6 +6,7 @@ WORKDIR /app
 RUN npm install -g pnpm@9
 COPY package.json pnpm-lock.yaml* ./
 RUN pnpm install --no-frozen-lockfile
+RUN pnpm rebuild better-sqlite3
 
 COPY . .
 
@@ -34,7 +35,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Đảm bảo native bindings của better-sqlite3 được sao chép đầy đủ
+# Sao chép node_modules của better-sqlite3
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 
 # Đảm bảo thư mục public tồn tại
