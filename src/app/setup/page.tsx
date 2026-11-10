@@ -102,8 +102,7 @@ export default function SetupPage() {
       }
 
       // Success -> Redirect to dashboard
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Đã có lỗi xảy ra trong quá trình thiết lập.");
     } finally {

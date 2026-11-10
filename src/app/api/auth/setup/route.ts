@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
     if (token) {
       response.cookies.set(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
+        secure: false, // Cho phép hoạt động trên cả HTTP mạng LAN (vd: http://192.168.1.20:3000)
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: "/",

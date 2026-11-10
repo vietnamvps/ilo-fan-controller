@@ -53,8 +53,7 @@ export default function LoginPage() {
         throw new Error(data.error || "Đăng nhập thất bại");
       }
 
-      router.push("/");
-      router.refresh();
+      window.location.href = "/";
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
     } finally {

@@ -20,7 +20,7 @@ export async function POST(req: NextRequest) {
     const response = NextResponse.json({ success: true, message: "Đăng nhập thành công" });
     response.cookies.set(COOKIE_NAME, token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
+      secure: false, // Cho phép hoạt động trên cả HTTP mạng LAN (vd: http://192.168.1.20:3000)
       sameSite: "lax",
       maxAge: 60 * 60 * 24 * 7, // 7 days
       path: "/",
