@@ -1,12 +1,10 @@
 # Stage 1: Build application
-FROM node:20-alpine AS builder
-RUN apk add --no-cache libc6-compat python3 make g++
+FROM node:20-slim AS builder
 WORKDIR /app
 
 RUN npm install -g pnpm && pnpm config set update-notifier false
 COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --no-frozen-lockfile --ignore-scripts
-RUN pnpm rebuild better-sqlite3
+RUN pnpm install --no-frozen-lockfile
 
 COPY . .
 
@@ -16,8 +14,7 @@ ENV NODE_ENV=production
 RUN npx next build
 
 # Stage 2: Production runner
-FROM node:20-alpine AS runner
-RUN apk add --no-cache libc6-compat
+FROM node:20-slim AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
@@ -26,8 +23,8 @@ ENV PORT=3000
 ENV HOSTNAME="0.0.0.0"
 
 # Cài đặt quyền hạn và thư mục lưu trữ SQLite
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 nextjs && \
+RUN groupadd --system --gid 1001 nodejs && \
+    useradd --system --uid 1001 -g nodejs nextjs && \
     mkdir -p /app/data && \
     chown -R nextjs:nodejs /app/data
 
@@ -35,7 +32,7 @@ RUN addgroup --system --gid 1001 nodejs && \
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
-# Sao chép node_modules của better-sqlite3
+# Sao chép native bindings của better-sqlite3
 COPY --from=builder /app/node_modules/better-sqlite3 ./node_modules/better-sqlite3
 
 # Đảm bảo thư mục public tồn tại
