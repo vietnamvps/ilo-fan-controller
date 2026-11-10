@@ -2,9 +2,9 @@
 FROM node:20-slim AS builder
 WORKDIR /app
 
-RUN npm install -g pnpm && pnpm config set update-notifier false
-COPY package.json pnpm-lock.yaml* ./
-RUN pnpm install --no-frozen-lockfile
+# Dùng trực tiếp npm chuẩn của Node.js (loại bỏ hoàn toàn các lỗi bảo mật/symlink/kẹt build của pnpm)
+COPY package.json ./
+RUN npm install
 
 COPY . .
 
