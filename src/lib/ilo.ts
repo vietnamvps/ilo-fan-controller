@@ -9,41 +9,76 @@ let mockCpu1Temp = 42;
 let mockCpu2Temp = 44;
 let mockAmbientTemp = 25;
 
-export async function fetchServerThermal(): Promise<ServerThermalData> {
-  const config = await getIloConfig();
+// Helper thực hiện GET request qua HTTPS bỏ qua chứng chỉ tự ký (Self-signed certificate) của iLO
+function httpsGetJson(urlStr: string, authHeader: string, timeoutMs = 7000): Promise<Record<string, unknown>> {
+  return new Promise((resolve, reject) => {
+    try {
+      const parsedUrl = new URL(urlStr);
+      const req = https.request(
+        {
+          hostname: parsedUrl.hostname,
+          port: parsedUrl.port || 443,
+          path: parsedUrl.pathname + parsedUrl.search,
+          method: "GET",
+          headers: {
+            Authorization: authHeader,
+            Accept: "application/json",
+          },
+          rejectUnauthorized: false, // Bắt buộc cho iLO 4 vì luôn dùng SSL tự ký
+          timeout: timeoutMs,
+        },
+        (res) => {
+          if (res.statusCode && (res.statusCode < 200 || res.statusCode >= 300)) {
+            return reject(new Error(`iLO HTTP ${res.statusCode}: ${res.statusMessage || "Lỗi truy vấn"}`));
+          }
+          let body = "";
+          res.on("data", (chunk) => {
+            body += chunk;
+          });
+          res.on("end", () => {
+            try {
+              const parsed = JSON.parse(body);
+              resolve(parsed as Record<string, unknown>);
+            } catch (e) {
+              reject(new Error("Dữ liệu iLO trả về không phải JSON hợp lệ: " + (e instanceof Error ? e.message : String(e))));
+            }
+          });
+        }
+      );
 
-  // If in mock mode or host is not properly configured, return simulated HP DL380 G9 data
+      req.on("timeout", () => {
+        req.destroy();
+        reject(new Error(`Hết thời gian chờ kết nối iLO (${timeoutMs / 1000}s)`));
+      });
+
+      req.on("error", (err) => {
+        reject(err);
+      });
+
+      req.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+export async function fetchServerThermal(): Promise<ServerThermalData> {
+  const config = getIloConfig();
+
+  // Nếu người dùng bật Mock mode hoặc chưa điền IP host thì trả về dữ liệu mô phỏng
   if (config.mockMode || !config.host || config.host === "your-ilo-address" || config.host === "192.168.1.100") {
-    return getSimulatedThermalData(config.minFanSpeed);
+    return {
+      ...getSimulatedThermalData(config.minFanSpeed),
+      isMock: true,
+      iloHost: config.host || "",
+    };
   }
 
   try {
-    const authHeader = "Basic " + Buffer.from(`${config.username}:${config.password}`).toString("base64");
+    const authHeader = "Basic " + Buffer.from(`${config.username}:${config.password || ""}`).toString("base64");
     const url = `https://${config.host}:${config.httpPort || 443}/redfish/v1/Chassis/1/Thermal`;
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 6000);
-
-    const agent = new https.Agent({ rejectUnauthorized: false });
-
-    const response = await fetch(url, {
-      method: "GET",
-      headers: {
-        Authorization: authHeader,
-        Accept: "application/json",
-      },
-      // @ts-expect-error agent is supported in Node runtime fetch
-      agent,
-      signal: controller.signal,
-    });
-
-    clearTimeout(timeoutId);
-
-    if (!response.ok) {
-      throw new Error(`iLO HTTP error ${response.status}: ${response.statusText}`);
-    }
-
-    const data = await response.json();
+    const data = await httpsGetJson(url, authHeader, 7000);
 
     const fans: FanStatus[] = [];
     if (Array.isArray(data.Fans)) {
@@ -86,13 +121,16 @@ export async function fetchServerThermal(): Promise<ServerThermalData> {
       serverModel: "HPE ProLiant DL380 Gen9",
       iloFirmware: "iLO 4 v2.77 (Fan Mod)",
       isMock: false,
+      iloHost: config.host,
     };
   } catch (error) {
-    console.warn("Failed to fetch live iLO data, falling back to simulated data:", error);
+    console.warn("Lỗi đọc dữ liệu Redfish từ iLO thật:", error);
     const sim = getSimulatedThermalData(config.minFanSpeed);
     return {
       ...sim,
-      isMock: true,
+      isMock: false, // Người dùng đã cài đặt iLO nên KHÔNG PHẢI Mock mode
+      connectionError: error instanceof Error ? error.message : String(error),
+      iloHost: config.host,
     };
   }
 }
@@ -245,20 +283,10 @@ export async function testIloConnection(): Promise<{
   let restMessage = "";
   try {
     const authHeader = "Basic " + Buffer.from(`${config.username}:${config.password}`).toString("base64");
-    const agent = new https.Agent({ rejectUnauthorized: false });
-    const res = await fetch(`https://${config.host}:${config.httpPort || 443}/redfish/v1/Chassis/1/Thermal`, {
-      method: "GET",
-      headers: { Authorization: authHeader },
-      // @ts-expect-error agent in node fetch
-      agent,
-      signal: AbortSignal.timeout(5000),
-    });
-    if (res.ok) {
-      restOk = true;
-      restMessage = `Kết nối Redfish API thành công (HTTP ${res.status})`;
-    } else {
-      restMessage = `Lỗi HTTP ${res.status}: ${res.statusText}`;
-    }
+    const url = `https://${config.host}:${config.httpPort || 443}/redfish/v1/Chassis/1/Thermal`;
+    await httpsGetJson(url, authHeader, 6000);
+    restOk = true;
+    restMessage = `Kết nối Redfish REST API qua HTTPS port ${config.httpPort || 443} thành công!`;
   } catch (err: unknown) {
     restMessage = `Không thể kết nối REST API: ${err instanceof Error ? err.message : String(err)}`;
   }

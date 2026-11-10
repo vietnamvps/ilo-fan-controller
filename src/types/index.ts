@@ -20,6 +20,8 @@ export interface ServerThermalData {
   serverModel: string;
   iloFirmware: string;
   isMock: boolean;
+  connectionError?: string;
+  iloHost?: string;
 }
 
 export interface FanPreset {

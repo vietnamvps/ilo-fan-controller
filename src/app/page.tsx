@@ -361,6 +361,29 @@ export default function DashboardPage() {
           </div>
         )}
 
+        {/* Banner thông báo khi đã cấu hình iLO nhưng tạm thời không thể kết nối */}
+        {!thermalData?.isMock && thermalData?.connectionError && (
+          <div className="rounded-xl border border-rose-500/30 bg-rose-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-rose-200">
+                  Không thể kết nối Redfish tới iLO ({thermalData.iloHost || "Máy chủ"})
+                </h3>
+                <p className="text-xs text-rose-300/80">
+                  {thermalData.connectionError}. Đang tạm hiển thị dữ liệu gần nhất.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/settings"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-rose-500 hover:bg-rose-400 text-white transition-colors whitespace-nowrap shadow-md shadow-rose-900/30"
+            >
+              Kiểm tra cấu hình iLO →
+            </Link>
+          </div>
+        )}
+
         {/* Top Summary Banner: Server Chassis Status & Quick Stats */}
         <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/90 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
