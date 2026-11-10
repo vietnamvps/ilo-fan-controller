@@ -1,5 +1,12 @@
+declare module "*.css" {
+  const classes: { [key: string]: string };
+  export default classes;
+}
+
 import type { Metadata } from "next";
 import "./globals.css";
+
+export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
   title: "HPE DL380 Gen9 - iLO 4 Fan Controller & Thermal Monitor",

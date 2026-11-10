@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { getPresets, savePresets } from "../../../../lib/storage";
 import { FanPreset } from "../../../../types";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const presets = getPresets();
   return NextResponse.json(presets);

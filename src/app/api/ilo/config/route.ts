@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIloConfig, saveIloConfig } from "../../../../lib/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function GET() {
   const config = getIloConfig();
   return NextResponse.json({

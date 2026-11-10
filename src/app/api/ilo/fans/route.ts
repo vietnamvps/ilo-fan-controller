@@ -2,6 +2,8 @@ import { NextRequest, NextResponse } from "next/server";
 import { setFanSpeeds } from "../../../../lib/ilo";
 import { getIloConfig } from "../../../../lib/storage";
 
+export const dynamic = "force-dynamic";
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();

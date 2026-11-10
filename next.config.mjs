@@ -9,6 +9,8 @@ const nextConfig = {
   },
   experimental: {
     serverComponentsExternalPackages: ["ssh2", "better-sqlite3"],
+    workerThreads: false,
+    cpus: 1,
   },
 };
 
