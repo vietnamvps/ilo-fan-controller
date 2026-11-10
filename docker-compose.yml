@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  ilo-fan-controller:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ilo-fan-controller
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      # Điền thông tin iLO của máy chủ HP ProLiant (hoặc cấu hình sau trên Web UI)
+      - ILO_HOST=192.168.1.100
+      - ILO_SSH_PORT=22
+      - ILO_HTTP_PORT=443
+      - ILO_USERNAME=Administrator
+      - ILO_PASSWORD=
+      - MINIMUM_FAN_SPEED=15
+      - MOCK_MODE=false
+    volumes:
+      # Giữ lại dữ liệu tài khoản, cấu hình và presets khi container restart/recreate
+      - ./data:/app/data

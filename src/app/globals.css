@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --bg-primary: #0a0e17;
+  --bg-card: #111827;
+  --border-color: #1f293d;
+  --hpe-green: #01a982;
+  --hpe-glow: rgba(1, 169, 130, 0.25);
+}
+
+body {
+  background-color: #0b0f19;
+  color: #f3f4f6;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  overflow-x: hidden;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f1626;
+}
+::-webkit-scrollbar-thumb {
+  background: #25334e;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #01a982;
+}
+
+/* Fan Blade Keyframe Animation */
+@keyframes spin-fan {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.fan-spinning {
+  animation: spin-fan var(--spin-duration, 2s) linear infinite;
+  transform-origin: center;
+}
+
+/* Server Rack Grid Pattern */
+.server-grid-bg {
+  background-image: radial-gradient(rgba(1, 169, 130, 0.08) 1px, transparent 1px),
+    radial-gradient(rgba(37, 99, 235, 0.05) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: 0 0, 12px 12px;
+}
+
+/* Glassmorphism Card */
+.glass-card {
+  background: rgba(17, 24, 39, 0.75);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.glass-card:hover {
+  border-color: rgba(1, 169, 130, 0.3);
+}
+
+/* Range Input Styling */
+input[type="range"] {
+  -webkit-appearance: none;
+  background: #1f2937;
+  border-radius: 8px;
+  height: 8px;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  height: 20px;
+  width: 20px;
+  border-radius: 50%;
+  background: #01a982;
+  cursor: pointer;
+  box-shadow: 0 0 10px rgba(1, 169, 130, 0.6);
+  border: 2px solid #ffffff;
+  transition: transform 0.1s ease, box-shadow 0.1s ease;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.15);
+  box-shadow: 0 0 14px rgba(0, 209, 160, 0.9);
+}
