@@ -18,7 +18,7 @@ function ensureDataDir() {
 
 // Default Configuration
 const DEFAULT_CONFIG: IloConfig = {
-  host: process.env.ILO_HOST || "192.168.1.100",
+  host: process.env.ILO_HOST || "",
   sshPort: Number(process.env.ILO_SSH_PORT) || 22,
   httpPort: Number(process.env.ILO_HTTP_PORT) || 443,
   username: process.env.ILO_USERNAME || "Administrator",

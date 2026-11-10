@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
+import Link from "next/link";
 import Header from "@/components/Header";
 import FanCard from "@/components/FanCard";
 import ThermalGrid from "@/components/ThermalGrid";
@@ -322,6 +323,29 @@ export default function DashboardPage() {
       />
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+        {/* Banner thông báo khi chưa kết nối iLO hoặc đang ở Mock mode */}
+        {thermalData?.isMock && (
+          <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="flex items-center space-x-3">
+              <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
+              <div>
+                <h3 className="text-sm font-semibold text-amber-200">
+                  Hệ thống đang chạy chế độ mô phỏng (Mock Mode)
+                </h3>
+                <p className="text-xs text-amber-300/80">
+                  Bạn có thể vào trang Cấu hình iLO để nhập IP máy chủ, tài khoản và mật khẩu iLO thật.
+                </p>
+              </div>
+            </div>
+            <Link
+              href="/settings"
+              className="px-4 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-colors whitespace-nowrap shadow-md shadow-amber-900/30"
+            >
+              Vào trang Cài đặt iLO →
+            </Link>
+          </div>
+        )}
+
         {/* Top Summary Banner: Server Chassis Status & Quick Stats */}
         <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/90 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
