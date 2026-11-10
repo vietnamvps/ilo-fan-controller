@@ -1,8 +1,3 @@
-declare module "*.css" {
-  const classes: { [key: string]: string };
-  export default classes;
-}
-
 import type { Metadata } from "next";
 import "./globals.css";
 

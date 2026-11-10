@@ -13,15 +13,20 @@ let dbInstance: Database.Database | null = null;
 export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
 
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
+  try {
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
+    dbInstance = new Database(DB_PATH);
+    dbInstance.pragma("journal_mode = WAL");
+
+    initDb(dbInstance);
+    return dbInstance;
+  } catch (err) {
+    console.error("Lỗi khởi tạo SQLite Database tại", DB_PATH, ":", err);
+    throw err;
   }
-
-  dbInstance = new Database(DB_PATH);
-  dbInstance.pragma("journal_mode = WAL");
-
-  initDb(dbInstance);
-  return dbInstance;
 }
 
 function initDb(db: Database.Database) {
