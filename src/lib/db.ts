@@ -1,6 +1,6 @@
 import path from "path";
 import fs from "fs";
-import initSqlJs, { Database, SqlJsStatic } from "sql.js";
+import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { AuthConfig, IloConfig, FanPreset } from "@/types";
@@ -8,53 +8,30 @@ import { AuthConfig, IloConfig, FanPreset } from "@/types";
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "app.db");
 
-let SQL: SqlJsStatic | null = null;
-let dbInstance: Database | null = null;
+let dbInstance: Database.Database | null = null;
 
-async function getSQL(): Promise<SqlJsStatic> {
-  if (SQL) return SQL;
-  SQL = await initSqlJs();
-  return SQL;
-}
-
-export async function getDb(): Promise<Database> {
+export function getDb(): Database.Database {
   if (dbInstance) return dbInstance;
 
-  const sql = await getSQL();
-  if (!fs.existsSync(DATA_DIR)) {
-    fs.mkdirSync(DATA_DIR, { recursive: true });
-  }
-
-  if (fs.existsSync(DB_PATH)) {
-    try {
-      const fileBuffer = fs.readFileSync(DB_PATH);
-      dbInstance = new sql.Database(fileBuffer);
-    } catch (err) {
-      console.error("Corrupt db file, creating new:", err);
-      dbInstance = new sql.Database();
-    }
-  } else {
-    dbInstance = new sql.Database();
-  }
-
-  initDb(dbInstance);
-  saveDb(dbInstance);
-  return dbInstance;
-}
-
-function saveDb(db: Database) {
   try {
-    const data = db.export();
-    const buffer = Buffer.from(data);
-    fs.writeFileSync(DB_PATH, buffer);
+    if (!fs.existsSync(DATA_DIR)) {
+      fs.mkdirSync(DATA_DIR, { recursive: true });
+    }
+
+    dbInstance = new Database(DB_PATH);
+    dbInstance.pragma("journal_mode = WAL");
+
+    initDb(dbInstance);
+    return dbInstance;
   } catch (err) {
-    console.error("Error saving SQLite database to disk:", err);
+    console.error("Lỗi khởi tạo SQLite Database tại", DB_PATH, ":", err);
+    throw err;
   }
 }
 
-function initDb(db: Database) {
+function initDb(db: Database.Database) {
   // Table: users
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS users (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       username TEXT UNIQUE NOT NULL,
@@ -64,7 +41,7 @@ function initDb(db: Database) {
   `);
 
   // Table: settings (Key-Value)
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS settings (
       key TEXT PRIMARY KEY,
       value TEXT NOT NULL
@@ -72,7 +49,7 @@ function initDb(db: Database) {
   `);
 
   // Table: presets
-  db.run(`
+  db.exec(`
     CREATE TABLE IF NOT EXISTS presets (
       id TEXT PRIMARY KEY,
       name TEXT NOT NULL,
@@ -83,10 +60,11 @@ function initDb(db: Database) {
   `);
 
   // Ensure JWT secret exists in settings
-  const checkSecret = db.exec("SELECT value FROM settings WHERE key = 'jwt_secret'");
-  if (!checkSecret.length || !checkSecret[0].values.length) {
+  const getSecretStmt = db.prepare("SELECT value FROM settings WHERE key = ?");
+  const existingSecret = getSecretStmt.get("jwt_secret") as { value: string } | undefined;
+  if (!existingSecret) {
     const newSecret = crypto.randomBytes(32).toString("hex");
-    db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('jwt_secret', ?)", [newSecret]);
+    db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run("jwt_secret", newSecret);
   }
 
   // Seed default presets if empty
@@ -94,11 +72,10 @@ function initDb(db: Database) {
 }
 
 // Default Presets for HP ProLiant DL380 G9
-function seedDefaultPresets(db: Database) {
-  const checkPresets = db.exec("SELECT COUNT(*) as count FROM presets");
-  const count = checkPresets.length && checkPresets[0].values.length ? (checkPresets[0].values[0][0] as number) : 0;
-
-  if (count === 0) {
+function seedDefaultPresets(db: Database.Database) {
+  const countRow = db.prepare("SELECT COUNT(*) as count FROM presets").get() as { count: number };
+  if (countRow.count === 0) {
+    const insertStmt = db.prepare("INSERT INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)");
     const defaults = [
       {
         id: "silent",
@@ -130,42 +107,39 @@ function seedDefaultPresets(db: Database) {
       },
     ];
 
-    for (const item of defaults) {
-      db.run("INSERT INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)", [
-        item.id,
-        item.name,
-        item.description,
-        item.speeds,
-        item.icon,
-      ]);
-    }
+    const insertMany = db.transaction((items) => {
+      for (const item of items) {
+        insertStmt.run(item.id, item.name, item.description, item.speeds, item.icon);
+      }
+    });
+    insertMany(defaults);
   }
 }
 
 // ----------------- USER & AUTH -----------------
 
-export async function hasAdminUser(): Promise<boolean> {
-  const db = await getDb();
-  const res = db.exec("SELECT COUNT(*) FROM users");
-  if (!res.length || !res[0].values.length) return false;
-  return (res[0].values[0][0] as number) > 0;
+export function hasAdminUser(): boolean {
+  try {
+    const db = getDb();
+    const row = db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number };
+    return row.count > 0;
+  } catch (err) {
+    console.error("hasAdminUser error:", err);
+    return false;
+  }
 }
 
-export async function getAdminUser(): Promise<{ id: number; username: string; password_hash: string } | null> {
-  const db = await getDb();
-  const res = db.exec("SELECT id, username, password_hash FROM users ORDER BY id ASC LIMIT 1");
-  if (!res.length || !res[0].values.length) return null;
-  const row = res[0].values[0];
-  return {
-    id: row[0] as number,
-    username: row[1] as string,
-    password_hash: row[2] as string,
-  };
+export function getAdminUser(): { id: number; username: string; password_hash: string } | null {
+  const db = getDb();
+  const row = db.prepare("SELECT id, username, password_hash FROM users ORDER BY id ASC LIMIT 1").get() as
+    | { id: number; username: string; password_hash: string }
+    | undefined;
+  return row || null;
 }
 
-export async function createAdminUser(username: string, password: string): Promise<{ success: boolean; error?: string }> {
-  const hasUser = await hasAdminUser();
-  if (hasUser) {
+export function createAdminUser(username: string, password: string): { success: boolean; error?: string } {
+  const db = getDb();
+  if (hasAdminUser()) {
     return { success: false, error: "Tài khoản quản trị đã tồn tại trên hệ thống!" };
   }
 
@@ -181,17 +155,16 @@ export async function createAdminUser(username: string, password: string): Promi
   const passwordHash = bcrypt.hashSync(password, salt);
 
   try {
-    const db = await getDb();
-    db.run("INSERT INTO users (username, password_hash) VALUES (?, ?)", [cleanUsername, passwordHash]);
-    saveDb(db);
+    db.prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)").run(cleanUsername, passwordHash);
     return { success: true };
   } catch (err) {
     return { success: false, error: "Lỗi tạo tài khoản: " + (err instanceof Error ? err.message : String(err)) };
   }
 }
 
-export async function updateAdminPassword(newPassword: string, newUsername?: string): Promise<boolean> {
-  const current = await getAdminUser();
+export function updateAdminPassword(newPassword: string, newUsername?: string): boolean {
+  const db = getDb();
+  const current = getAdminUser();
   if (!current) return false;
 
   const salt = bcrypt.genSaltSync(10);
@@ -199,22 +172,20 @@ export async function updateAdminPassword(newPassword: string, newUsername?: str
   const username = newUsername?.trim() || current.username;
 
   try {
-    const db = await getDb();
-    db.run("UPDATE users SET username = ?, password_hash = ? WHERE id = ?", [username, hash, current.id]);
-    saveDb(db);
+    db.prepare("UPDATE users SET username = ?, password_hash = ? WHERE id = ?").run(username, hash, current.id);
     return true;
   } catch {
     return false;
   }
 }
 
-export async function getAuthConfig(): Promise<AuthConfig | null> {
-  const user = await getAdminUser();
+export function getAuthConfig(): AuthConfig | null {
+  const user = getAdminUser();
   if (!user) return null;
 
-  const db = await getDb();
-  const res = db.exec("SELECT value FROM settings WHERE key = 'jwt_secret'");
-  const jwtSecret = res.length && res[0].values.length ? (res[0].values[0][0] as string) : "fallback_secret_jwt";
+  const db = getDb();
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("jwt_secret") as { value: string } | undefined;
+  const jwtSecret = row?.value || "default_fallback_secret_key_change_me";
 
   return {
     username: user.username,
@@ -225,30 +196,28 @@ export async function getAuthConfig(): Promise<AuthConfig | null> {
 
 // ----------------- SETTINGS / ILO CONFIG -----------------
 
-export async function getSetting(key: string, defaultValue = ""): Promise<string> {
-  const db = await getDb();
-  const res = db.exec(`SELECT value FROM settings WHERE key = '${key}'`);
-  if (!res.length || !res[0].values.length) return defaultValue;
-  return res[0].values[0][0] as string;
+export function getSetting(key: string, defaultValue = ""): string {
+  const db = getDb();
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get(key) as { value: string } | undefined;
+  return row ? row.value : defaultValue;
 }
 
-export async function setSetting(key: string, value: string): Promise<void> {
-  const db = await getDb();
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)", [key, value]);
-  saveDb(db);
+export function setSetting(key: string, value: string): void {
+  const db = getDb();
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run(key, value);
 }
 
-export async function getIloConfig(): Promise<IloConfig> {
-  const host = await getSetting("ilo_host", process.env.ILO_HOST || "");
-  const sshPort = Number(await getSetting("ilo_ssh_port", String(process.env.ILO_SSH_PORT || "22"))) || 22;
-  const httpPort = Number(await getSetting("ilo_http_port", String(process.env.ILO_HTTP_PORT || "443"))) || 443;
-  const username = await getSetting("ilo_username", process.env.ILO_USERNAME || "Administrator");
-  const password = await getSetting("ilo_password", process.env.ILO_PASSWORD || "");
-  const minFanSpeed = Number(await getSetting("min_fan_speed", String(process.env.MINIMUM_FAN_SPEED || "15"))) || 15;
-  const maxFanSpeed = Number(await getSetting("max_fan_speed", "100")) || 100;
-  const mockModeStr = await getSetting("mock_mode", "");
+export function getIloConfig(): IloConfig {
+  const host = getSetting("ilo_host", process.env.ILO_HOST || "");
+  const sshPort = Number(getSetting("ilo_ssh_port", String(process.env.ILO_SSH_PORT || "22"))) || 22;
+  const httpPort = Number(getSetting("ilo_http_port", String(process.env.ILO_HTTP_PORT || "443"))) || 443;
+  const username = getSetting("ilo_username", process.env.ILO_USERNAME || "Administrator");
+  const password = getSetting("ilo_password", process.env.ILO_PASSWORD || "");
+  const minFanSpeed = Number(getSetting("min_fan_speed", String(process.env.MINIMUM_FAN_SPEED || "15"))) || 15;
+  const maxFanSpeed = Number(getSetting("max_fan_speed", "100")) || 100;
+  const mockModeStr = getSetting("mock_mode", "");
   const mockMode = mockModeStr ? mockModeStr === "true" : Boolean(process.env.MOCK_MODE === "true" || !host);
-  const autoRefreshInterval = Number(await getSetting("auto_refresh_interval", "5")) || 5;
+  const autoRefreshInterval = Number(getSetting("auto_refresh_interval", "5")) || 5;
 
   return {
     host,
@@ -263,71 +232,85 @@ export async function getIloConfig(): Promise<IloConfig> {
   };
 }
 
-export async function saveIloConfig(config: IloConfig): Promise<void> {
-  const db = await getDb();
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('ilo_host', ?)", [config.host || ""]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('ilo_ssh_port', ?)", [String(config.sshPort || 22)]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('ilo_http_port', ?)", [String(config.httpPort || 443)]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('ilo_username', ?)", [config.username || "Administrator"]);
-  if (config.password !== undefined && config.password !== null) {
-    db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('ilo_password', ?)", [config.password]);
-  }
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('min_fan_speed', ?)", [String(config.minFanSpeed || 15)]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('max_fan_speed', ?)", [String(config.maxFanSpeed || 100)]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('mock_mode', ?)", [config.mockMode ? "true" : "false"]);
-  db.run("INSERT OR REPLACE INTO settings (key, value) VALUES ('auto_refresh_interval', ?)", [String(config.autoRefreshInterval || 5)]);
-  saveDb(db);
+export function saveIloConfig(config: IloConfig): void {
+  const db = getDb();
+  const insertStmt = db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)");
+
+  const saveMany = db.transaction(() => {
+    insertStmt.run("ilo_host", config.host || "");
+    insertStmt.run("ilo_ssh_port", String(config.sshPort || 22));
+    insertStmt.run("ilo_http_port", String(config.httpPort || 443));
+    insertStmt.run("ilo_username", config.username || "Administrator");
+    if (config.password !== undefined && config.password !== null) {
+      insertStmt.run("ilo_password", config.password);
+    }
+    insertStmt.run("min_fan_speed", String(config.minFanSpeed || 15));
+    insertStmt.run("max_fan_speed", String(config.maxFanSpeed || 100));
+    insertStmt.run("mock_mode", config.mockMode ? "true" : "false");
+    insertStmt.run("auto_refresh_interval", String(config.autoRefreshInterval || 5));
+  });
+
+  saveMany();
 }
 
 // ----------------- PRESETS -----------------
 
-export async function getFanPresets(): Promise<FanPreset[]> {
-  const db = await getDb();
-  const res = db.exec("SELECT id, name, description, speeds, icon FROM presets");
-  if (!res.length || !res[0].values.length) return [];
+export function getFanPresets(): FanPreset[] {
+  const db = getDb();
+  const rows = db.prepare("SELECT id, name, description, speeds, icon FROM presets ORDER BY rowid ASC").all() as {
+    id: string;
+    name: string;
+    description: string;
+    speeds: string;
+    icon: string;
+  }[];
 
-  return res[0].values.map((row) => ({
-    id: row[0] as string,
-    name: row[1] as string,
-    description: row[2] as string,
-    speeds: JSON.parse(row[3] as string),
-    icon: row[4] as string,
+  return rows.map((r) => ({
+    id: r.id,
+    name: r.name,
+    description: r.description,
+    speeds: JSON.parse(r.speeds),
+    icon: r.icon,
   }));
 }
 
-export async function getPresets(): Promise<FanPreset[]> {
+export function getPresets(): FanPreset[] {
   return getFanPresets();
 }
 
-export async function saveFanPreset(preset: FanPreset): Promise<void> {
-  const db = await getDb();
-  db.run("INSERT OR REPLACE INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)", [
+export function saveFanPreset(preset: FanPreset): void {
+  const db = getDb();
+  db.prepare("INSERT OR REPLACE INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)").run(
     preset.id,
     preset.name,
     preset.description || "",
     JSON.stringify(preset.speeds),
-    preset.icon || "Sliders",
-  ]);
-  saveDb(db);
+    preset.icon || "Sliders"
+  );
 }
 
-export async function savePresets(presets: FanPreset[]): Promise<void> {
-  const db = await getDb();
-  db.run("DELETE FROM presets");
-  for (const item of presets) {
-    db.run("INSERT INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)", [
-      item.id,
-      item.name,
-      item.description || "",
-      JSON.stringify(item.speeds),
-      item.icon || "Sliders",
-    ]);
-  }
-  saveDb(db);
+export function savePresets(presets: FanPreset[]): void {
+  const db = getDb();
+  const deleteStmt = db.prepare("DELETE FROM presets");
+  const insertStmt = db.prepare("INSERT INTO presets (id, name, description, speeds, icon) VALUES (?, ?, ?, ?, ?)");
+
+  const saveAll = db.transaction((items: FanPreset[]) => {
+    deleteStmt.run();
+    for (const item of items) {
+      insertStmt.run(
+        item.id,
+        item.name,
+        item.description || "",
+        JSON.stringify(item.speeds),
+        item.icon || "Sliders"
+      );
+    }
+  });
+
+  saveAll(presets);
 }
 
-export async function deleteFanPreset(id: string): Promise<void> {
-  const db = await getDb();
-  db.run("DELETE FROM presets WHERE id = ?", [id]);
-  saveDb(db);
+export function deleteFanPreset(id: string): void {
+  const db = getDb();
+  db.prepare("DELETE FROM presets WHERE id = ?").run(id);
 }

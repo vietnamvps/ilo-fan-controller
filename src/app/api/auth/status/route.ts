@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const hasAdmin = await hasAdminUser();
+    const hasAdmin = hasAdminUser();
     return NextResponse.json({
       needsSetup: !hasAdmin,
       hasAdmin,

@@ -1,5 +1,3 @@
-version: "3.8"
-
 services:
   ilo-fan-controller:
     image: ghcr.io/vietnamvps/ilo-fan-controller:latest

@@ -6,8 +6,7 @@ export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
   try {
-    const hasAdmin = await hasAdminUser();
-    if (hasAdmin) {
+    if (hasAdminUser()) {
       return NextResponse.json(
         { error: "Hệ thống đã có tài khoản quản trị. Vui lòng đăng nhập bình thường." },
         { status: 400 }
@@ -30,14 +29,14 @@ export async function POST(req: NextRequest) {
     }
 
     // Create admin user in SQLite
-    const result = await createAdminUser(username.trim(), password);
+    const result = createAdminUser(username.trim(), password);
     if (!result.success) {
       return NextResponse.json({ error: result.error || "Không thể tạo tài khoản admin." }, { status: 500 });
     }
 
     // Save initial iLO configuration if provided
-    const currentIlo = await getIloConfig();
-    await saveIloConfig({
+    const currentIlo = getIloConfig();
+    saveIloConfig({
       ...currentIlo,
       host: typeof iloHost === "string" ? iloHost.trim() : currentIlo.host,
       sshPort: Number(iloPort) || 22,
