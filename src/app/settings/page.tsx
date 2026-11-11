@@ -61,38 +61,40 @@ export default function SettingsPage() {
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  const fetchConfig = async () => {
-    try {
-      setConfigLoading(true);
-      const res = await fetch("/api/ilo/config");
-      if (res.ok) {
-        const data = await res.json();
-        setConfig(data);
-        setHasPassword(data.hasPassword);
-      }
-    } catch (err) {
-      console.error("Failed to load config:", err);
-    } finally {
-      setConfigLoading(false);
-    }
-  };
-
-  const fetchUser = async () => {
-    try {
-      const res = await fetch("/api/auth/user");
-      if (res.ok) {
-        const data = await res.json();
-        setAdminUsername(data.username);
-      }
-    } catch (err) {
-      console.error("Failed to load user:", err);
-    }
-  };
-
-  // Load current config
+  // Load current config & user
   useEffect(() => {
-    fetchConfig();
-    fetchUser();
+    let ignore = false;
+    async function loadData() {
+      try {
+        const [configRes, userRes] = await Promise.all([
+          fetch("/api/ilo/config"),
+          fetch("/api/auth/user"),
+        ]);
+        if (configRes.ok) {
+          const configData = await configRes.json();
+          if (!ignore) {
+            setConfig(configData);
+            setHasPassword(configData.hasPassword);
+          }
+        }
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          if (!ignore) {
+            setAdminUsername(userData.username);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load settings data:", err);
+      } finally {
+        if (!ignore) {
+          setConfigLoading(false);
+        }
+      }
+    }
+    loadData();
+    return () => {
+      ignore = true;
+    };
   }, []);
 
   const handleSaveConfig = async (e: React.FormEvent) => {

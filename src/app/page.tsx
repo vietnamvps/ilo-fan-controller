@@ -64,20 +64,25 @@ export default function DashboardPage() {
           ? { message: content }
           : { key: content.key, params: content.params }),
       };
-      setLogs((prev) => [...prev.slice(-49), entry]);
+      queueMicrotask(() => {
+        setLogs((prev) => [...prev.slice(-49), entry]);
+      });
     },
     []
   );
 
   // Fetch thermal data from server
-  const fetchThermal = useCallback(async (isBackground = false) => {
+  const fetchThermal = useCallback(async () => {
     try {
-      if (!isBackground) setIsRefreshing(true);
       const res = await fetch("/api/ilo/thermal");
       if (!res.ok) throw new Error("Không thể kết nối API Thermal");
       const data: ServerThermalData = await res.json();
       setThermalData(data);
+      setIsLoading(false);
+      setIsRefreshing(false);
     } catch (err: unknown) {
+      setIsLoading(false);
+      setIsRefreshing(false);
       console.error("Fetch thermal failed:", err);
       addLog(
         {
@@ -86,9 +91,6 @@ export default function DashboardPage() {
         },
         "error"
       );
-    } finally {
-      setIsLoading(false);
-      setIsRefreshing(false);
     }
   }, [addLog]);
 
@@ -130,17 +132,26 @@ export default function DashboardPage() {
 
   // Initial load
   useEffect(() => {
-    checkSetupStatus();
-    fetchThermal(true);
-    fetchPresetsAndConfig();
-    addLog({ key: "dashboard.logs.items.systemStarted" }, "info");
+    let ignore = false;
+    async function initDashboard() {
+      checkSetupStatus();
+      await fetchThermal();
+      await fetchPresetsAndConfig();
+      if (!ignore) {
+        addLog({ key: "dashboard.logs.items.systemStarted" }, "info");
+      }
+    }
+    initDashboard();
+    return () => {
+      ignore = true;
+    };
   }, [checkSetupStatus, fetchThermal, fetchPresetsAndConfig, addLog]);
 
   // Auto-refresh interval (5s)
   useEffect(() => {
     if (!autoRefresh) return;
     const interval = setInterval(() => {
-      fetchThermal(true);
+      fetchThermal();
     }, 5000);
     return () => clearInterval(interval);
   }, [autoRefresh, fetchThermal]);
@@ -462,7 +473,10 @@ export default function DashboardPage() {
     <div className="flex-1 bg-[#080c14] pb-6">
       <Header
         isMock={thermalData?.isMock}
-        onRefresh={() => fetchThermal(false)}
+        onRefresh={() => {
+          setIsRefreshing(true);
+          fetchThermal();
+        }}
         isRefreshing={isRefreshing}
         autoRefresh={autoRefresh}
         setAutoRefresh={setAutoRefresh}
