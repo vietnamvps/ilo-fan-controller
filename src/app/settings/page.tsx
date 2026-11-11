@@ -200,28 +200,28 @@ export default function SettingsPage() {
     <div className="min-h-screen bg-[#090d16] pb-16">
       <Header isMock={config.mockMode} />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8">
-        <div className="mb-8">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-3">
-            <Server className="w-8 h-8 text-emerald-400" />
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8">
+        <div className="mb-6 sm:mb-8">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-2.5 sm:space-x-3">
+            <Server className="w-6 h-6 sm:w-8 sm:h-8 text-emerald-400 shrink-0" />
             <span>{t("settings.title")}</span>
           </h1>
-          <p className="mt-1 text-sm text-gray-400">
+          <p className="mt-1 text-xs sm:text-sm text-gray-400">
             {t("settings.subtitle")}
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-8">
           {/* Main Settings: iLO Connection */}
           <div className="lg:col-span-2 space-y-6">
-            <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/80 backdrop-blur-xl p-6 sm:p-8 shadow-xl">
-              <div className="flex items-center justify-between pb-4 mb-6 border-b border-gray-800">
+            <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/80 backdrop-blur-xl p-4 sm:p-8 shadow-xl">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 mb-6 border-b border-gray-800 gap-3">
                 <div className="flex items-center space-x-3">
-                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                  <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 shrink-0">
                     <Server className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">{t("settings.ilo.cardTitle")}</h2>
+                    <h2 className="text-base sm:text-lg font-bold text-white">{t("settings.ilo.cardTitle")}</h2>
                     <p className="text-xs text-gray-400">{t("settings.ilo.cardSubtitle")}</p>
                   </div>
                 </div>
@@ -230,7 +230,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={handleTestConnection}
                   disabled={testing}
-                  className="px-3.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-all flex items-center space-x-1.5 disabled:opacity-50"
+                  className="self-start sm:self-auto px-3.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-all flex items-center space-x-1.5 disabled:opacity-50 shrink-0"
                 >
                   <Activity className={`w-4 h-4 ${testing ? "animate-spin text-emerald-400" : ""}`} />
                   <span>{testing ? t("settings.ilo.testingButton") : t("settings.ilo.testButton")}</span>

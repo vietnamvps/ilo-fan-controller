@@ -54,5 +54,7 @@ export interface LogEntry {
   id: string;
   timestamp: string;
   type: "info" | "success" | "warn" | "error";
-  message: string;
+  message?: string;
+  key?: string;
+  params?: Record<string, string | number>;
 }

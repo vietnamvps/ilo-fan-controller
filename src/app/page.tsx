@@ -49,15 +49,23 @@ export default function DashboardPage() {
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDesc, setNewPresetDesc] = useState("");
 
-  const addLog = useCallback((message: string, type: "info" | "success" | "warn" | "error" = "info") => {
-    const entry: LogEntry = {
-      id: "log-" + Date.now() + "-" + Math.random().toString(36).substring(2, 5),
-      timestamp: new Date().toLocaleTimeString(),
-      type,
-      message,
-    };
-    setLogs((prev) => [...prev.slice(-49), entry]);
-  }, []);
+  const addLog = useCallback(
+    (
+      content: string | { key: string; params?: Record<string, string | number> },
+      type: "info" | "success" | "warn" | "error" = "info"
+    ) => {
+      const entry: LogEntry = {
+        id: "log-" + Date.now() + "-" + Math.random().toString(36).substring(2, 5),
+        timestamp: new Date().toLocaleTimeString(),
+        type,
+        ...(typeof content === "string"
+          ? { message: content }
+          : { key: content.key, params: content.params }),
+      };
+      setLogs((prev) => [...prev.slice(-49), entry]);
+    },
+    []
+  );
 
   // Fetch thermal data from server
   const fetchThermal = useCallback(async (isBackground = false) => {
@@ -69,7 +77,13 @@ export default function DashboardPage() {
       setThermalData(data);
     } catch (err: unknown) {
       console.error("Fetch thermal failed:", err);
-      addLog("Lỗi lấy dữ liệu từ iLO: " + (err instanceof Error ? err.message : String(err)), "error");
+      addLog(
+        {
+          key: "dashboard.logs.items.fetchThermalError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -117,7 +131,7 @@ export default function DashboardPage() {
     checkSetupStatus();
     fetchThermal();
     fetchPresetsAndConfig();
-    addLog("Hệ thống khởi chạy - Đang giám sát HPE ProLiant DL380 Gen9 qua iLO 4", "info");
+    addLog({ key: "dashboard.logs.items.systemStarted" }, "info");
   }, [checkSetupStatus, fetchThermal, fetchPresetsAndConfig, addLog]);
 
   // Auto-refresh interval (5s)
@@ -140,7 +154,13 @@ export default function DashboardPage() {
   // Apply speed to a single fan
   const handleApplySingleFan = async (index: number, speed: number) => {
     setIsApplying(true);
-    addLog(`Đang gửi lệnh thay đổi Quạt #${index + 1} sang ${speed}%...`, "info");
+    addLog(
+      {
+        key: "dashboard.logs.items.fanApplyingSingle",
+        params: { index: index + 1, speed },
+      },
+      "info"
+    );
 
     try {
       const res = await fetch("/api/ilo/fans", {
@@ -161,7 +181,13 @@ export default function DashboardPage() {
         result.logs.forEach((msg: string) => addLog(msg, "info"));
       }
 
-      addLog(`Thành công! Đã thiết lập Quạt #${index + 1} thành ${speed}%`, "success");
+      addLog(
+        {
+          key: "dashboard.logs.items.fanAppliedSingleSuccess",
+          params: { index: index + 1, speed },
+        },
+        "success"
+      );
 
       // Clear pending state for this fan
       setPendingSpeeds((prev) => {
@@ -173,7 +199,13 @@ export default function DashboardPage() {
       // Refresh thermal data
       fetchThermal();
     } catch (err: unknown) {
-      addLog("Lỗi: " + (err instanceof Error ? err.message : String(err)), "error");
+      addLog(
+        {
+          key: "dashboard.logs.items.operationError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
     } finally {
       setIsApplying(false);
     }
@@ -182,7 +214,13 @@ export default function DashboardPage() {
   // Apply master speed to all fans
   const handleApplyMasterSpeed = async () => {
     setIsApplying(true);
-    addLog(`Đang gửi lệnh đồng bộ tất cả 6 quạt sang ${masterSpeed}%...`, "info");
+    addLog(
+      {
+        key: "dashboard.logs.items.fanApplyingAll",
+        params: { speed: masterSpeed },
+      },
+      "info"
+    );
 
     try {
       const res = await fetch("/api/ilo/fans", {
@@ -203,11 +241,23 @@ export default function DashboardPage() {
         result.logs.forEach((msg: string) => addLog(msg, "info"));
       }
 
-      addLog(`Thành công! Tất cả 6 quạt đã được thiết lập ở mức ${masterSpeed}%`, "success");
+      addLog(
+        {
+          key: "dashboard.logs.items.fanAppliedAllSuccess",
+          params: { speed: masterSpeed },
+        },
+        "success"
+      );
       setPendingSpeeds({});
       fetchThermal();
     } catch (err: unknown) {
-      addLog("Lỗi: " + (err instanceof Error ? err.message : String(err)), "error");
+      addLog(
+        {
+          key: "dashboard.logs.items.operationError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
     } finally {
       setIsApplying(false);
     }
@@ -216,7 +266,13 @@ export default function DashboardPage() {
   // Apply preset
   const handleApplyPreset = async (preset: FanPreset) => {
     setIsApplying(true);
-    addLog(`Đang kích hoạt Preset: "${preset.name}"...`, "info");
+    addLog(
+      {
+        key: "dashboard.logs.items.presetApplying",
+        params: { name: preset.name },
+      },
+      "info"
+    );
 
     try {
       let fansPayload: { index: number; speed: number }[] = [];
@@ -245,11 +301,23 @@ export default function DashboardPage() {
         result.logs.forEach((msg: string) => addLog(msg, "info"));
       }
 
-      addLog(`Đã kích hoạt thành công chế độ "${preset.name}"`, "success");
+      addLog(
+        {
+          key: "dashboard.logs.items.presetAppliedSuccess",
+          params: { name: preset.name },
+        },
+        "success"
+      );
       setPendingSpeeds({});
       fetchThermal();
     } catch (err: unknown) {
-      addLog("Lỗi kích hoạt preset: " + (err instanceof Error ? err.message : String(err)), "error");
+      addLog(
+        {
+          key: "dashboard.logs.items.presetApplyError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
     } finally {
       setIsApplying(false);
     }
@@ -283,7 +351,13 @@ export default function DashboardPage() {
         setShowPresetModal(false);
         setNewPresetName("");
         setNewPresetDesc("");
-        addLog(`Đã lưu Preset mới: "${newPresetName}"`, "success");
+        addLog(
+          {
+            key: "dashboard.logs.items.presetSavedSuccess",
+            params: { name: newPresetName },
+          },
+          "success"
+        );
       }
     } catch (err) {
       console.error("Failed to add preset:", err);
@@ -307,7 +381,13 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json();
         setPresets(data.presets);
-        addLog(`Đã xóa Preset: "${name}"`, "info");
+        addLog(
+          {
+            key: "dashboard.logs.items.presetDeletedSuccess",
+            params: { name },
+          },
+          "info"
+        );
       }
     } catch (err) {
       console.error("Failed to delete preset:", err);
@@ -339,7 +419,7 @@ export default function DashboardPage() {
         lastUpdated={thermalData?.lastUpdated}
       />
 
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-8 space-y-8">
+      <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8 space-y-6 sm:space-y-8">
         {/* Banner thông báo khi chưa kết nối iLO hoặc đang ở Mock mode */}
         {thermalData?.isMock && (
           <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
@@ -387,14 +467,14 @@ export default function DashboardPage() {
         )}
 
         {/* Top Summary Banner: Server Chassis Status & Quick Stats */}
-        <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/90 backdrop-blur-xl p-6 shadow-2xl relative overflow-hidden">
+        <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/90 backdrop-blur-xl p-4 sm:p-6 shadow-2xl relative overflow-hidden">
           <div className="absolute top-0 right-0 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none" />
 
           <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
             <div className="space-y-1">
-              <div className="flex items-center space-x-2">
-                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-                <h1 className="text-xl sm:text-2xl font-black text-white tracking-wide">
+              <div className="flex flex-wrap items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping shrink-0" />
+                <h1 className="text-lg sm:text-xl md:text-2xl font-black text-white tracking-wide">
                   {thermalData?.serverModel || "HPE ProLiant DL380 Gen9"}
                 </h1>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
@@ -408,39 +488,39 @@ export default function DashboardPage() {
             </div>
 
             {/* Quick Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.fanT1Speed")}</span>
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+                <span className="text-[11px] text-gray-400 block mb-1 truncate">{t("dashboard.chassis.fanT1Speed")}</span>
                 <div className="flex items-baseline space-x-1.5">
-                  <span className="text-xl font-bold font-mono text-emerald-400">{avgSpeed}%</span>
+                  <span className="text-lg sm:text-xl font-bold font-mono text-emerald-400">{avgSpeed}%</span>
                   <span className="text-[10px] text-gray-400">PWM</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.cpuMaxTemp")}</span>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+                <span className="text-[11px] text-gray-400 block mb-1 truncate">{t("dashboard.chassis.cpuMaxTemp")}</span>
                 <div className="flex items-baseline space-x-1.5">
-                  <span className={`text-xl font-bold font-mono ${maxCpuTemp > 70 ? "text-rose-400" : "text-emerald-400"}`}>
+                  <span className={`text-lg sm:text-xl font-bold font-mono ${maxCpuTemp > 70 ? "text-rose-400" : "text-emerald-400"}`}>
                     {maxCpuTemp > 0 ? `${maxCpuTemp}°C` : "N/A"}
                   </span>
                   <span className="text-[10px] text-gray-400">Xeon E5</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.ambientTemp")}</span>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+                <span className="text-[11px] text-gray-400 block mb-1 truncate">{t("dashboard.chassis.ambientTemp")}</span>
                 <div className="flex items-baseline space-x-1.5">
-                  <span className="text-xl font-bold font-mono text-cyan-400">
+                  <span className="text-lg sm:text-xl font-bold font-mono text-cyan-400">
                     {ambientSensor ? `${ambientSensor.temperature}°C` : "24°C"}
                   </span>
                   <span className="text-[10px] text-gray-400">Ambient</span>
                 </div>
               </div>
 
-              <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.chassisFans")}</span>
+              <div className="p-2.5 sm:p-3 rounded-xl bg-gray-900/80 border border-gray-800">
+                <span className="text-[11px] text-gray-400 block mb-1 truncate">{t("dashboard.chassis.chassisFans")}</span>
                 <div className="flex items-baseline space-x-1.5">
-                  <span className="text-xl font-bold font-mono text-white">6 / 6</span>
+                  <span className="text-lg sm:text-xl font-bold font-mono text-white">6 / 6</span>
                   <span className="text-[10px] text-emerald-400 font-semibold">{t("dashboard.chassis.ready")}</span>
                 </div>
               </div>

@@ -121,33 +121,33 @@ export default function SetupPage() {
   }
 
   return (
-    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 relative">
+    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-3 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
       {/* Language Switcher in top right corner */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-6">
         <LanguageSwitcher />
       </div>
 
       <div className="w-full max-w-xl">
         {/* Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 shadow-xl shadow-emerald-950/60 mb-4 border border-emerald-400/30">
-            <Server className="w-8 h-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 shadow-xl shadow-emerald-950/60 mb-3 sm:mb-4 border border-emerald-400/30">
+            <Server className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
           <div className="inline-flex items-center space-x-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-medium mb-2">
             <Sparkles className="w-3.5 h-3.5" />
             <span>{t("auth.setup.brandBadge")}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">
             {t("auth.setup.title")}{" "}
             <span className="text-emerald-400">{t("auth.setup.model")}</span>
           </h1>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-400">
             {t("auth.setup.description")}
           </p>
         </div>
 
         {/* Setup Card */}
-        <div className="bg-[#0f1626]/90 border border-gray-800 rounded-2xl shadow-2xl backdrop-blur-xl p-6 sm:p-8">
+        <div className="bg-[#0f1626]/90 border border-gray-800 rounded-2xl shadow-2xl backdrop-blur-xl p-4 sm:p-8">
           {error && (
             <div className="mb-6 p-4 rounded-xl bg-red-500/10 border border-red-500/30 flex items-start space-x-3">
               <AlertCircle className="w-5 h-5 text-red-400 shrink-0 mt-0.5" />

@@ -74,29 +74,29 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 relative">
+    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-3 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
       {/* Language Switcher in top right corner */}
-      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+      <div className="absolute top-3 right-3 sm:top-6 sm:right-6">
         <LanguageSwitcher />
       </div>
 
       <div className="w-full max-w-md">
         {/* Server Brand Header */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 shadow-xl shadow-emerald-950/60 mb-4 border border-emerald-400/30">
-            <Server className="w-8 h-8 text-white" />
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 shadow-xl shadow-emerald-950/60 mb-3 sm:mb-4 border border-emerald-400/30">
+            <Server className="w-7 h-7 sm:w-8 sm:h-8 text-white" />
           </div>
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white tracking-tight">
             {t("auth.login.title")}{" "}
             <span className="text-emerald-400">{t("auth.login.model")}</span>
           </h1>
-          <p className="mt-2 text-sm text-gray-400">
+          <p className="mt-1.5 sm:mt-2 text-xs sm:text-sm text-gray-400">
             {t("auth.login.subtitle")}
           </p>
         </div>
 
         {/* Login Box */}
-        <div className="rounded-2xl border border-gray-800 bg-[#0f172a]/80 backdrop-blur-xl p-8 shadow-2xl relative overflow-hidden">
+        <div className="rounded-2xl border border-gray-800 bg-[#0f172a]/80 backdrop-blur-xl p-5 sm:p-8 shadow-2xl relative overflow-hidden">
           {/* Subtle Accent Glow */}
           <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-emerald-500 via-teal-400 to-cyan-500" />
 

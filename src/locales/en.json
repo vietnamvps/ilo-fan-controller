@@ -191,7 +191,21 @@
       "linesCount": "{count} lines",
       "clearButton": "Clear Logs",
       "clearTitle": "Clear action logs",
-      "empty": "No operations recorded yet. Try adjusting fan speeds or applying presets to view logs."
+      "empty": "No operations recorded yet. Try adjusting fan speeds or applying presets to view logs.",
+      "items": {
+        "systemStarted": "System initialized - Monitoring HPE ProLiant DL380 Gen9 via iLO 4",
+        "fetchThermalError": "Error fetching telemetry from iLO: {error}",
+        "fanApplyingSingle": "Sending command to set Fan #{index} to {speed}%...",
+        "fanAppliedSingleSuccess": "Success! Configured Fan #{index} to {speed}%",
+        "fanApplyingAll": "Sending command to synchronize all 6 fans to {speed}%...",
+        "fanAppliedAllSuccess": "Success! All 6 fans configured to {speed}%",
+        "operationError": "Error: {error}",
+        "presetApplying": "Activating Preset: \"{name}\"...",
+        "presetAppliedSuccess": "Successfully activated preset \"{name}\"",
+        "presetApplyError": "Failed to activate preset: {error}",
+        "presetSavedSuccess": "Saved new Preset: \"{name}\"",
+        "presetDeletedSuccess": "Deleted Preset: \"{name}\""
+      }
     },
     "modal": {
       "title": "Save Current Configuration as Preset",

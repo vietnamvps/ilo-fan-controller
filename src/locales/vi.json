@@ -191,7 +191,21 @@
       "linesCount": "{count} dòng",
       "clearButton": "Xóa nhật ký",
       "clearTitle": "Xóa nhật ký log",
-      "empty": "Chưa có lệnh nào được thực thi. Hãy chọn preset hoặc thay đổi tốc độ quạt để bắt đầu."
+      "empty": "Chưa có lệnh nào được thực thi. Hãy chọn preset hoặc thay đổi tốc độ quạt để bắt đầu.",
+      "items": {
+        "systemStarted": "Hệ thống khởi chạy - Đang giám sát HPE ProLiant DL380 Gen9 qua iLO 4",
+        "fetchThermalError": "Lỗi lấy dữ liệu từ iLO: {error}",
+        "fanApplyingSingle": "Đang gửi lệnh thay đổi Quạt #{index} sang {speed}%...",
+        "fanAppliedSingleSuccess": "Thành công! Đã thiết lập Quạt #{index} thành {speed}%",
+        "fanApplyingAll": "Đang gửi lệnh đồng bộ tất cả 6 quạt sang {speed}%...",
+        "fanAppliedAllSuccess": "Thành công! Tất cả 6 quạt đã được thiết lập ở mức {speed}%",
+        "operationError": "Lỗi: {error}",
+        "presetApplying": "Đang kích hoạt Preset: \"{name}\"...",
+        "presetAppliedSuccess": "Đã kích hoạt thành công chế độ \"{name}\"",
+        "presetApplyError": "Lỗi kích hoạt preset: {error}",
+        "presetSavedSuccess": "Đã lưu Preset mới: \"{name}\"",
+        "presetDeletedSuccess": "Đã xóa Preset: \"{name}\""
+      }
     },
     "modal": {
       "title": "Lưu cấu hình hiện tại thành Preset",

@@ -50,10 +50,12 @@ export default function ActionLogs({ logs, onClearLogs }: ActionLogsProps) {
             if (log.type === "warn") textColor = "text-amber-400";
             if (log.type === "error") textColor = "text-rose-400";
 
+            const content = log.key ? t(log.key, log.params) : (log.message || "");
+
             return (
               <div key={log.id} className="flex items-start space-x-2 leading-relaxed">
                 <span className="text-gray-400 shrink-0">[{log.timestamp}]</span>
-                <span className={`break-all ${textColor}`}>{log.message}</span>
+                <span className={`break-all ${textColor}`}>{content}</span>
               </div>
             );
           })
