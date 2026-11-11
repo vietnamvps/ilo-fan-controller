@@ -74,7 +74,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-3 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
+    <div className="flex-1 server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-3 sm:px-6 lg:px-8 py-8 sm:py-12 relative">
       {/* Language Switcher in top right corner */}
       <div className="absolute top-3 right-3 sm:top-6 sm:right-6">
         <LanguageSwitcher />

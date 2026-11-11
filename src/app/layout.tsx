@@ -38,9 +38,14 @@ export default function RootLayout({
 
   return (
     <html lang={locale} className="dark">
-      <body className="antialiased min-h-screen bg-[#080c14] text-gray-100">
+      <body className="antialiased min-h-screen bg-[#080c14] text-gray-100 flex flex-col">
         <LanguageProvider initialLocale={locale}>
-          {children}
+          <div className="flex-1 flex flex-col">
+            {children}
+          </div>
+          <footer className="w-full text-center text-xs text-slate-500 mt-8 pb-6">
+            iLO 4 Advanced Thermal Management by TuNguyen
+          </footer>
         </LanguageProvider>
       </body>
     </html>

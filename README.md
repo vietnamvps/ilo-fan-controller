@@ -12,6 +12,22 @@ A modern, responsive web application designed for **HPE ProLiant DL380 Gen9 (and
 
 ---
 
+## 📸 Screenshots
+
+| Dashboard Overview & Master Controller | 6-Fan Chassis Control Board |
+|:---:|:---:|
+| ![Dashboard Overview](docs/images/dashboard-overview.jpg) | ![6-Fan Modules](docs/images/fan-modules.jpg) |
+
+| Real-time Redfish Thermal Sensors (44 Sensors) | Live SSH Action Logs & Zone Telemetry |
+|:---:|:---:|
+| ![Thermal Sensors](docs/images/thermal-sensors-1.jpg) | ![Terminal Logs](docs/images/thermal-sensors-2-logs.png) |
+
+| System Settings & iLO 4 Connection |
+|:---:|
+| ![System Settings](docs/images/settings-page.jpg) |
+
+---
+
 ## ✨ Features
 
 - **Dual-Protocol Hardware Integration:**

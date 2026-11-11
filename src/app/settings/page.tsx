@@ -197,7 +197,7 @@ export default function SettingsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#090d16] pb-16">
+    <div className="flex-1 bg-[#090d16] pb-16">
       <Header isMock={config.mockMode} />
 
       <main className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 pt-4 sm:pt-8">

@@ -12,6 +12,22 @@
 
 ---
 
+## 📸 Hình Ảnh Giao Diện Thực Tế
+
+| Tổng Quan Dashboard & Điều Khiển Master | Sơ Đồ 6 Cụm Quạt Chassis |
+|:---:|:---:|
+| ![Tổng quan Dashboard](docs/images/dashboard-overview.jpg) | ![Sơ đồ 6 Quạt Chassis](docs/images/fan-modules.jpg) |
+
+| 44 Cảm Biến Nhiệt Độ Redfish Thời Gian Thực | Nhật Ký Lệnh SSH Terminal & Cảm Biến Khu Vực |
+|:---:|:---:|
+| ![Cảm biến nhiệt độ](docs/images/thermal-sensors-1.jpg) | ![Nhật ký lệnh Terminal](docs/images/thermal-sensors-2-logs.png) |
+
+| Trang Cấu Hình Hệ Thống & Kết Nối iLO 4 |
+|:---:|
+| ![Cấu hình hệ thống](docs/images/settings-page.jpg) |
+
+---
+
 ## ✨ Tính Năng Nổi Bật
 
 - **Tích Hợp Giao Thức Kép (Dual-Protocol):**

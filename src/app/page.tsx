@@ -409,7 +409,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="min-h-screen bg-[#080c14] pb-16">
+    <div className="flex-1 bg-[#080c14] pb-16">
       <Header
         isMock={thermalData?.isMock}
         onRefresh={() => fetchThermal(false)}
