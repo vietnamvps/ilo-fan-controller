@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Server, Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
 import { useTranslation } from "../../contexts/LanguageContext";
@@ -178,15 +177,6 @@ export default function LoginPage() {
               )}
             </button>
           </form>
-
-          <div className="mt-4 pt-4 border-t border-gray-800 text-center">
-            <Link
-              href="/setup"
-              className="text-xs text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center space-x-1"
-            >
-              <span>{t("auth.login.setupLink")}</span>
-            </Link>
-          </div>
         </div>
 
         {/* Footer info */}
