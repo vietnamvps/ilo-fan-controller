@@ -3,12 +3,15 @@
 import React from "react";
 import { Thermometer, Cpu, HardDrive, Zap, Server } from "lucide-react";
 import { TempSensor } from "@/types";
+import { useTranslation } from "../contexts/LanguageContext";
 
 interface ThermalGridProps {
   temperatures: TempSensor[];
 }
 
 export default function ThermalGrid({ temperatures }: ThermalGridProps) {
+  const { t } = useTranslation();
+
   if (!temperatures || temperatures.length === 0) {
     return null;
   }
@@ -31,12 +34,12 @@ export default function ThermalGrid({ temperatures }: ThermalGridProps) {
             <Thermometer className="w-5 h-5" />
           </div>
           <div>
-            <h3 className="font-bold text-white text-base">Cảm biến Nhiệt độ HP DL380 G9</h3>
-            <p className="text-xs text-gray-400">Dữ liệu thời gian thực từ iLO 4 Redfish Thermal API</p>
+            <h3 className="font-bold text-white text-base">{t("dashboard.sensors.title")}</h3>
+            <p className="text-xs text-gray-400">{t("dashboard.sensors.description")}</p>
           </div>
         </div>
         <span className="text-xs font-mono text-gray-400 bg-gray-800/80 px-2.5 py-1 rounded-full border border-gray-700">
-          {temperatures.length} Cảm biến đang hoạt động
+          {t("dashboard.sensors.activeCount", { count: temperatures.length })}
         </span>
       </div>
 
@@ -78,7 +81,9 @@ export default function ThermalGrid({ temperatures }: ThermalGridProps) {
                     <h4 className="text-xs font-semibold text-gray-200 line-clamp-1" title={sensor.name}>
                       {sensor.name}
                     </h4>
-                    <span className="text-[10px] text-gray-400">Ngưỡng: &lt;{crit}°C</span>
+                    <span className="text-[10px] text-gray-400">
+                      {t("dashboard.sensors.threshold", { temp: crit })}
+                    </span>
                   </div>
                 </div>
 

@@ -3,6 +3,7 @@
 import React, { useRef, useEffect } from "react";
 import { Terminal, Trash2 } from "lucide-react";
 import { LogEntry } from "@/types";
+import { useTranslation } from "../contexts/LanguageContext";
 
 interface ActionLogsProps {
   logs: LogEntry[];
@@ -10,6 +11,7 @@ interface ActionLogsProps {
 }
 
 export default function ActionLogs({ logs, onClearLogs }: ActionLogsProps) {
+  const { t } = useTranslation();
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -21,15 +23,15 @@ export default function ActionLogs({ logs, onClearLogs }: ActionLogsProps) {
       <div className="flex items-center justify-between pb-3 mb-3 border-b border-gray-800">
         <div className="flex items-center space-x-2">
           <Terminal className="w-4 h-4 text-emerald-400" />
-          <span className="font-semibold text-gray-200">Nhật ký iLO Terminal (SSH & Redfish)</span>
+          <span className="font-semibold text-gray-200">{t("dashboard.logs.title")}</span>
           <span className="text-[10px] text-gray-400 px-2 py-0.5 rounded bg-gray-800">
-            {logs.length} dòng
+            {t("dashboard.logs.linesCount", { count: logs.length })}
           </span>
         </div>
 
         <button
           onClick={onClearLogs}
-          title="Xóa nhật ký log"
+          title={t("dashboard.logs.clearTitle")}
           className="p-1.5 rounded-lg text-gray-400 hover:text-rose-400 hover:bg-gray-800 transition-colors"
         >
           <Trash2 className="w-3.5 h-3.5" />
@@ -39,7 +41,7 @@ export default function ActionLogs({ logs, onClearLogs }: ActionLogsProps) {
       <div className="max-h-48 overflow-y-auto space-y-1.5 pr-2 select-text">
         {logs.length === 0 ? (
           <div className="text-gray-400 italic py-2 text-center">
-            Chưa có lệnh nào được thực thi. Hãy chọn preset hoặc thay đổi tốc độ quạt để bắt đầu.
+            {t("dashboard.logs.empty")}
           </div>
         ) : (
           logs.map((log) => {

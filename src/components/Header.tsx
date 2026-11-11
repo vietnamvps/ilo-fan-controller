@@ -2,7 +2,9 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Server, Settings, LogOut, RefreshCw, ShieldAlert, Cpu } from "lucide-react";
+import { Server, Settings, LogOut, RefreshCw, Cpu } from "lucide-react";
+import { useTranslation } from "../contexts/LanguageContext";
+import LanguageSwitcher from "./LanguageSwitcher";
 
 interface HeaderProps {
   isMock?: boolean;
@@ -19,10 +21,10 @@ export default function Header({
   isRefreshing = false,
   autoRefresh = true,
   setAutoRefresh,
-  lastUpdated,
 }: HeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const { t } = useTranslation();
 
   const handleLogout = async () => {
     try {
@@ -54,7 +56,7 @@ export default function Header({
                   </span>
                 </div>
                 <p className="text-xs text-gray-400 hidden sm:block">
-                  iLO 4 Advanced Thermal Management
+                  {t("header.brandSubtitle")}
                 </p>
               </div>
             </Link>
@@ -63,17 +65,17 @@ export default function Header({
             {isMock ? (
               <div className="hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-400 text-xs">
                 <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse" />
-                <span className="font-medium">Chế độ Giả lập (Mock Mode)</span>
+                <span className="font-medium">{t("header.badgeMockMode")}</span>
               </div>
             ) : (
               <div className="hidden md:flex items-center space-x-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-xs">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
-                <span className="font-medium">iLO 4 Online</span>
+                <span className="font-medium">{t("header.badgeOnline")}</span>
               </div>
             )}
           </div>
 
-          {/* Navigation Links */}
+          {/* Navigation Links & Controls */}
           <nav className="flex items-center space-x-1 sm:space-x-2">
             <Link
               href="/"
@@ -84,7 +86,7 @@ export default function Header({
               }`}
             >
               <Cpu className="w-4 h-4" />
-              <span className="hidden sm:inline">Quạt & Nhiệt độ</span>
+              <span className="hidden sm:inline">{t("header.navFansThermal")}</span>
             </Link>
 
             <Link
@@ -96,7 +98,7 @@ export default function Header({
               }`}
             >
               <Settings className="w-4 h-4" />
-              <span className="hidden sm:inline">Cấu hình iLO</span>
+              <span className="hidden sm:inline">{t("header.navIloConfig")}</span>
             </Link>
 
             {/* Controls & Actions */}
@@ -105,7 +107,7 @@ export default function Header({
                 {setAutoRefresh && (
                   <button
                     onClick={() => setAutoRefresh(!autoRefresh)}
-                    title={autoRefresh ? "Tự động làm mới đang bật (5s)" : "Tự động làm mới đang tắt"}
+                    title={autoRefresh ? t("common.autoRefresh", { seconds: 5 }) : t("common.refresh")}
                     className={`p-2 rounded-lg text-xs font-medium transition-colors hidden sm:flex items-center space-x-1 ${
                       autoRefresh
                         ? "text-emerald-400 bg-emerald-500/10"
@@ -113,14 +115,14 @@ export default function Header({
                     }`}
                   >
                     <span className="w-1.5 h-1.5 rounded-full bg-current" />
-                    <span>Auto 5s</span>
+                    <span>{t("common.autoRefresh", { seconds: 5 })}</span>
                   </button>
                 )}
 
                 <button
                   onClick={onRefresh}
                   disabled={isRefreshing}
-                  title="Làm mới dữ liệu từ iLO ngay lập tức"
+                  title={t("common.refresh")}
                   className="p-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
                 >
                   <RefreshCw className={`w-4 h-4 ${isRefreshing ? "animate-spin text-emerald-400" : ""}`} />
@@ -128,14 +130,17 @@ export default function Header({
               </div>
             )}
 
+            {/* Language Switcher */}
+            <LanguageSwitcher className="ml-1 sm:ml-2" />
+
             {/* Logout button */}
             <button
               onClick={handleLogout}
-              title="Đăng xuất khỏi bảng điều khiển"
-              className="flex items-center space-x-1 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 px-3 py-2 rounded-lg text-sm transition-colors ml-2"
+              title={t("header.logout")}
+              className="flex items-center space-x-1 text-gray-400 hover:text-rose-400 hover:bg-rose-500/10 px-3 py-2 rounded-lg text-sm transition-colors ml-1"
             >
               <LogOut className="w-4 h-4" />
-              <span className="hidden sm:inline">Thoát</span>
+              <span className="hidden sm:inline">{t("header.logout")}</span>
             </button>
           </nav>
         </div>

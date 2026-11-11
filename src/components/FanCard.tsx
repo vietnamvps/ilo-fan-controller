@@ -1,8 +1,8 @@
 "use client";
 
 import React from "react";
-import { Fan, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { FanStatus } from "@/types";
+import { useTranslation } from "../contexts/LanguageContext";
 
 interface FanCardProps {
   fan: FanStatus;
@@ -23,6 +23,7 @@ export default function FanCard({
   pendingSpeed,
   isLoading = false,
 }: FanCardProps) {
+  const { t } = useTranslation();
   const currentSpeed = pendingSpeed !== undefined ? pendingSpeed : fan.speed;
 
   // Calculate fan animation speed (100% => 0.2s, 15% => 1.8s)
@@ -30,19 +31,19 @@ export default function FanCard({
 
   // Speed level styling
   let badgeColor = "bg-emerald-500/10 text-emerald-400 border-emerald-500/30";
-  let speedText = "Êm ái";
+  let speedText = t("dashboard.fans.fanCard.levels.silent");
   let bladeColor = "#10b981"; // Emerald
   if (currentSpeed > 75) {
     badgeColor = "bg-rose-500/10 text-rose-400 border-rose-500/30";
-    speedText = "Turbine Max";
+    speedText = t("dashboard.fans.fanCard.levels.turbine");
     bladeColor = "#f43f5e";
   } else if (currentSpeed > 45) {
     badgeColor = "bg-amber-500/10 text-amber-400 border-amber-500/30";
-    speedText = "Tải cao";
+    speedText = t("dashboard.fans.fanCard.levels.high");
     bladeColor = "#f59e0b";
   } else if (currentSpeed > 25) {
     badgeColor = "bg-cyan-500/10 text-cyan-400 border-cyan-500/30";
-    speedText = "Cân bằng";
+    speedText = t("dashboard.fans.fanCard.levels.balanced");
     bladeColor = "#06b6d4";
   }
 
@@ -56,7 +57,9 @@ export default function FanCard({
           </div>
           <div>
             <h3 className="font-semibold text-white text-sm tracking-wide">{fan.name}</h3>
-            <span className="text-[11px] text-gray-400">DL380 Fan Bay #{fan.index + 1}</span>
+            <span className="text-[11px] text-gray-400">
+              {t("dashboard.fans.fanCard.bayLabel", { index: fan.index + 1 })}
+            </span>
           </div>
         </div>
 
@@ -137,10 +140,13 @@ export default function FanCard({
 
         {/* Speed Label */}
         <div className="mt-3 flex items-center space-x-2 text-xs text-gray-400">
-          <span>Hiện tại: <strong className="text-white font-mono">{fan.speed}%</strong></span>
+          <span>
+            {t("dashboard.fans.fanCard.currentReading")}{" "}
+            <strong className="text-white font-mono">{fan.speed}%</strong>
+          </span>
           {pendingSpeed !== undefined && pendingSpeed !== fan.speed && (
             <span className="text-amber-400 font-mono font-medium">
-              ➔ Mới: {pendingSpeed}%
+              {t("dashboard.fans.fanCard.newSpeed", { speed: pendingSpeed })}
             </span>
           )}
         </div>
@@ -168,23 +174,23 @@ export default function FanCard({
           <button
             onClick={() => onSpeedChange(Math.max(minSpeed, currentSpeed - 5))}
             className="py-1 px-1.5 text-[11px] rounded bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-mono"
-            title="Giảm 5%"
+            title={t("dashboard.fans.fanCard.stepDown")}
           >
             -5%
           </button>
           <button
             onClick={() => onSpeedChange(Math.min(maxSpeed, currentSpeed + 5))}
             className="py-1 px-1.5 text-[11px] rounded bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-mono"
-            title="Tăng 5%"
+            title={t("dashboard.fans.fanCard.stepUp")}
           >
             +5%
           </button>
           <button
             onClick={() => onSpeedChange(minSpeed)}
             className="py-1 px-1.5 text-[11px] rounded bg-gray-800/80 hover:bg-gray-700 text-gray-300 font-mono"
-            title="Về mức tối thiểu an toàn"
+            title={t("dashboard.fans.fanCard.toMin")}
           >
-            Min
+            {t("dashboard.fans.fanCard.min")}
           </button>
           <button
             onClick={() => onApplySpeed(currentSpeed)}
@@ -195,7 +201,7 @@ export default function FanCard({
                 : "bg-gray-800 text-gray-500 cursor-not-allowed"
             }`}
           >
-            {isLoading ? "..." : "Áp dụng"}
+            {isLoading ? "..." : t("dashboard.fans.fanCard.apply")}
           </button>
         </div>
       </div>

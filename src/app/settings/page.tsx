@@ -18,8 +18,11 @@ import {
   Lock,
 } from "lucide-react";
 import { IloConfig } from "@/types";
+import { useTranslation } from "../../contexts/LanguageContext";
 
 export default function SettingsPage() {
+  const { t } = useTranslation();
+
   // iLO Config State
   const [config, setConfig] = useState<IloConfig>({
     host: "",
@@ -108,16 +111,16 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Không thể lưu cấu hình");
+        throw new Error(data.error || t("auth.setup.errorFailed"));
       }
 
-      setSaveSuccess("Đã lưu thông tin cấu hình iLO thành công!");
+      setSaveSuccess(t("settings.ilo.saveSuccess"));
       if (config.password) {
         setHasPassword(true);
       }
       setTimeout(() => setSaveSuccess(null), 4000);
     } catch (err: unknown) {
-      setSaveError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+      setSaveError(err instanceof Error ? err.message : t("auth.setup.errorFailed"));
     } finally {
       setSaveLoading(false);
     }
@@ -159,7 +162,7 @@ export default function SettingsPage() {
     setAuthError(null);
 
     if (newPassword !== confirmPassword) {
-      setAuthError("Mật khẩu mới và xác nhận mật khẩu không trùng khớp");
+      setAuthError(t("settings.security.errorMismatch"));
       setAuthLoading(false);
       return;
     }
@@ -178,16 +181,16 @@ export default function SettingsPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Không thể cập nhật mật khẩu");
+        throw new Error(data.error || t("auth.setup.errorFailed"));
       }
 
-      setAuthSuccess("Cập nhật thông tin đăng nhập thành công!");
+      setAuthSuccess(t("settings.security.success"));
       setCurrentPassword("");
       setNewPassword("");
       setConfirmPassword("");
       setTimeout(() => setAuthSuccess(null), 4000);
     } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : "Đã có lỗi xảy ra");
+      setAuthError(err instanceof Error ? err.message : t("auth.setup.errorFailed"));
     } finally {
       setAuthLoading(false);
     }
@@ -201,10 +204,10 @@ export default function SettingsPage() {
         <div className="mb-8">
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight flex items-center space-x-3">
             <Server className="w-8 h-8 text-emerald-400" />
-            <span>Cấu hình Hệ thống & iLO 4</span>
+            <span>{t("settings.title")}</span>
           </h1>
           <p className="mt-1 text-sm text-gray-400">
-            Quản lý thông tin kết nối máy chủ HP ProLiant DL380 G9 và bảo mật ứng dụng
+            {t("settings.subtitle")}
           </p>
         </div>
 
@@ -218,8 +221,8 @@ export default function SettingsPage() {
                     <Server className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="text-lg font-bold text-white">Thông tin iLO 4 Máy chủ</h2>
-                    <p className="text-xs text-gray-400">Địa chỉ IP, tài khoản quản trị iLO và cổng kết nối</p>
+                    <h2 className="text-lg font-bold text-white">{t("settings.ilo.cardTitle")}</h2>
+                    <p className="text-xs text-gray-400">{t("settings.ilo.cardSubtitle")}</p>
                   </div>
                 </div>
 
@@ -230,7 +233,7 @@ export default function SettingsPage() {
                   className="px-3.5 py-2 rounded-xl bg-gray-800 hover:bg-gray-700 text-emerald-400 text-xs font-semibold border border-emerald-500/30 transition-all flex items-center space-x-1.5 disabled:opacity-50"
                 >
                   <Activity className={`w-4 h-4 ${testing ? "animate-spin text-emerald-400" : ""}`} />
-                  <span>{testing ? "Đang kiểm tra..." : "Test Kết nối iLO"}</span>
+                  <span>{testing ? t("settings.ilo.testingButton") : t("settings.ilo.testButton")}</span>
                 </button>
               </div>
 
@@ -238,7 +241,7 @@ export default function SettingsPage() {
               {testResult && (
                 <div className="mb-6 space-y-2 p-4 rounded-xl bg-gray-900/90 border border-gray-800">
                   <div className="flex items-center justify-between text-xs font-semibold text-gray-300 mb-2">
-                    <span>Kết quả kiểm tra trực tiếp:</span>
+                    <span>{t("settings.test.title")}</span>
                   </div>
                   {/* REST */}
                   <div className="flex items-center space-x-2 text-xs">
@@ -248,7 +251,7 @@ export default function SettingsPage() {
                       <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
                     )}
                     <span className={testResult.restOk ? "text-emerald-300" : "text-rose-300"}>
-                      Redfish REST API: {testResult.restMessage}
+                      {t("settings.test.restLabel")} {testResult.restMessage}
                     </span>
                   </div>
                   {/* SSH */}
@@ -259,7 +262,7 @@ export default function SettingsPage() {
                       <XCircle className="w-4 h-4 text-rose-400 shrink-0" />
                     )}
                     <span className={testResult.sshOk ? "text-emerald-300" : "text-rose-300"}>
-                      iLO SSH Fan Hack: {testResult.sshMessage}
+                      {t("settings.test.sshLabel")} {testResult.sshMessage}
                     </span>
                   </div>
                 </div>
@@ -283,7 +286,7 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="sm:col-span-2">
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                      Địa chỉ IP hoặc Hostname iLO 4
+                      {t("settings.ilo.hostLabel")}
                     </label>
                     <input
                       type="text"
@@ -294,13 +297,13 @@ export default function SettingsPage() {
                       className="w-full px-4 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white placeholder-gray-500 text-sm font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                     />
                     <span className="text-[11px] text-gray-400 mt-1 block">
-                      Địa chỉ IP cổng mạng iLO chuyên dụng (Dedicated iLO Port).
+                      {t("settings.ilo.hostHint")}
                     </span>
                   </div>
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                      SSH Port
+                      {t("settings.ilo.sshPortLabel")}
                     </label>
                     <input
                       type="number"
@@ -316,11 +319,12 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                      Tài khoản iLO (Username)
+                      {t("settings.ilo.usernameLabel")}
                     </label>
                     <input
                       type="text"
                       required
+                      autoComplete="username"
                       value={config.username}
                       onChange={(e) => setConfig({ ...config, username: e.target.value })}
                       placeholder="Administrator"
@@ -330,19 +334,20 @@ export default function SettingsPage() {
 
                   <div>
                     <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2 flex items-center justify-between">
-                      <span>Mật khẩu iLO</span>
+                      <span>{t("settings.ilo.passwordLabel")}</span>
                       {hasPassword && !config.password && (
                         <span className="text-emerald-400 text-[10px] lowercase font-normal">
-                          (Đã có mật khẩu lưu)
+                          {t("settings.ilo.passwordSavedNote")}
                         </span>
                       )}
                     </label>
                     <div className="relative">
                       <input
                         type={showIloPassword ? "text" : "password"}
+                        autoComplete="current-password"
                         value={config.password || ""}
                         onChange={(e) => setConfig({ ...config, password: e.target.value })}
-                        placeholder={hasPassword ? "•••••••••••• (Giữ nguyên)" : "Nhập mật khẩu iLO"}
+                        placeholder={hasPassword ? t("settings.ilo.passwordKeepPlaceholder") : t("settings.ilo.passwordNewPlaceholder")}
                         className="w-full px-4 pr-10 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                       />
                       <button
@@ -359,13 +364,13 @@ export default function SettingsPage() {
                 <div className="pt-2 border-t border-gray-800">
                   <h3 className="text-sm font-bold text-white mb-3 flex items-center space-x-2">
                     <Sliders className="w-4 h-4 text-emerald-400" />
-                    <span>Cấu hình Vận hành & Ngưỡng An toàn</span>
+                    <span>{t("settings.ilo.sectionOperation")}</span>
                   </h3>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                        Tốc độ quạt tối thiểu an toàn (%)
+                        {t("settings.ilo.minFanLabel")}
                       </label>
                       <input
                         type="number"
@@ -376,13 +381,13 @@ export default function SettingsPage() {
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                       />
                       <span className="text-[11px] text-gray-400 mt-1 block">
-                        Khuyến nghị: 15% - 20%. Không nên đặt dưới 10% để tránh quá nhiệt linh kiện.
+                        {t("settings.ilo.minFanHint")}
                       </span>
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                        Thời gian tự động làm mới (giây)
+                        {t("settings.ilo.autoRefreshLabel")}
                       </label>
                       <input
                         type="number"
@@ -393,7 +398,7 @@ export default function SettingsPage() {
                         className="w-full px-4 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm font-mono focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500"
                       />
                       <span className="text-[11px] text-gray-400 mt-1 block">
-                        Tần suất truy vấn Redfish Thermal API (mặc định 5s).
+                        {t("settings.ilo.autoRefreshHint")}
                       </span>
                     </div>
                   </div>
@@ -406,17 +411,17 @@ export default function SettingsPage() {
                   }`}>
                     <div>
                       <div className="flex items-center space-x-2">
-                        <h4 className="text-sm font-semibold text-white">Chế độ Mô phỏng (Mock Simulation)</h4>
+                        <h4 className="text-sm font-semibold text-white">{t("settings.ilo.mockModeTitle")}</h4>
                         {config.mockMode && (
                           <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded bg-amber-500/20 text-amber-300 border border-amber-500/30">
-                            Đang Bật
+                            {t("settings.ilo.mockModeActiveBadge")}
                           </span>
                         )}
                       </div>
                       <p className="text-xs text-gray-400 mt-0.5">
                         {config.mockMode
-                          ? "⚠️ Đang bật: Hệ thống sẽ KHÔNG gửi lệnh SSH đến máy chủ thật. Hãy TẮT nút này để điều khiển quạt thật của HP DL380 Gen9."
-                          : "Bật khi thử nghiệm giao diện hoặc khi server thật đang tắt nguồn / bảo trì."}
+                          ? t("settings.ilo.mockModeActiveWarning")
+                          : t("settings.ilo.mockModeDisabledHint")}
                       </p>
                     </div>
                     <label className="relative inline-flex items-center cursor-pointer shrink-0">
@@ -438,7 +443,7 @@ export default function SettingsPage() {
                     className="px-6 py-2.5 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/40 transition-all flex items-center space-x-2 disabled:opacity-60"
                   >
                     <Save className="w-4 h-4" />
-                    <span>{saveLoading ? "Đang lưu..." : "Lưu Cấu hình iLO"}</span>
+                    <span>{saveLoading ? t("settings.ilo.savingButton") : t("settings.ilo.saveButton")}</span>
                   </button>
                 </div>
               </form>
@@ -453,8 +458,8 @@ export default function SettingsPage() {
                   <Lock className="w-5 h-5" />
                 </div>
                 <div>
-                  <h2 className="text-base font-bold text-white">Tài khoản Quản trị Web</h2>
-                  <p className="text-xs text-gray-400">Thay đổi mật khẩu đăng nhập ứng dụng</p>
+                  <h2 className="text-base font-bold text-white">{t("settings.security.cardTitle")}</h2>
+                  <p className="text-xs text-gray-400">{t("settings.security.cardSubtitle")}</p>
                 </div>
               </div>
 
@@ -473,11 +478,12 @@ export default function SettingsPage() {
               <form onSubmit={handleUpdatePassword} className="space-y-4">
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                    Tên đăng nhập
+                    {t("settings.security.usernameLabel")}
                   </label>
                   <input
                     type="text"
                     required
+                    autoComplete="username"
                     value={adminUsername}
                     onChange={(e) => setAdminUsername(e.target.value)}
                     className="w-full px-3.5 py-2 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm focus:outline-none focus:border-teal-500"
@@ -486,42 +492,45 @@ export default function SettingsPage() {
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                    Mật khẩu hiện tại
+                    {t("settings.security.currentPasswordLabel")}
                   </label>
                   <input
                     type="password"
                     required
+                    autoComplete="current-password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder={t("settings.security.currentPasswordPlaceholder")}
                     className="w-full px-3.5 py-2 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                    Mật khẩu mới
+                    {t("settings.security.newPasswordLabel")}
                   </label>
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    placeholder="Tối thiểu 6 ký tự"
+                    placeholder={t("settings.security.newPasswordPlaceholder")}
                     className="w-full px-3.5 py-2 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm focus:outline-none focus:border-teal-500"
                   />
                 </div>
 
                 <div>
                   <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                    Xác nhận mật khẩu mới
+                    {t("settings.security.confirmPasswordLabel")}
                   </label>
                   <input
                     type="password"
                     required
+                    autoComplete="new-password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    placeholder="Nhập lại mật khẩu mới"
+                    placeholder={t("settings.security.confirmPasswordPlaceholder")}
                     className="w-full px-3.5 py-2 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white text-sm focus:outline-none focus:border-teal-500"
                   />
                 </div>
@@ -532,7 +541,7 @@ export default function SettingsPage() {
                   className="w-full py-2.5 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-semibold text-xs shadow-lg shadow-teal-900/40 transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
                 >
                   <KeyRound className="w-3.5 h-3.5" />
-                  <span>{authLoading ? "Đang cập nhật..." : "Đổi mật khẩu"}</span>
+                  <span>{authLoading ? t("settings.security.submittingButton") : t("settings.security.submitButton")}</span>
                 </button>
               </form>
             </div>
@@ -541,17 +550,17 @@ export default function SettingsPage() {
             <div className="rounded-2xl border border-gray-800 bg-[#0c1220]/70 p-5 text-xs space-y-3">
               <h3 className="font-bold text-gray-200 flex items-center space-x-1.5">
                 <HelpCircle className="w-4 h-4 text-emerald-400" />
-                <span>Lưu ý về Firmware iLO 4</span>
+                <span>{t("settings.firmwareNote.title")}</span>
               </h3>
               <p className="text-gray-400 leading-relaxed">
-                Máy chủ HP DL380 G9 cần cài đặt bản vá firmware <strong>iLO 4 v2.77 Fan Hack</strong> để mở khóa các lệnh điều khiển quạt SSH:
+                {t("settings.firmwareNote.description")}
               </p>
               <div className="bg-gray-900/90 p-2.5 rounded-lg border border-gray-800 font-mono text-[11px] text-emerald-300 space-y-1">
                 <div>fan p &lt;bay_id&gt; max &lt;0-255&gt;</div>
                 <div>fan p &lt;bay_id&gt; min 255</div>
               </div>
               <p className="text-gray-400 leading-relaxed">
-                Sau khi áp dụng tốc độ, iLO sẽ duy trì tốc độ quạt được chỉ định mà không tự ý hú còi khi lắp card PCIe rời (như GPU hoặc NIC 10GbE).
+                {t("settings.firmwareNote.note")}
               </p>
             </div>
           </div>

@@ -2,11 +2,12 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Server, Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
+import { useTranslation } from "../../contexts/LanguageContext";
+import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function LoginPage() {
-  const router = useRouter();
+  const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -22,7 +23,7 @@ export default function LoginPage() {
         if (res.ok) {
           const data = await res.json();
           if (data.needsSetup) {
-            router.replace("/setup");
+            window.location.href = "/setup";
             return;
           }
         }
@@ -33,7 +34,7 @@ export default function LoginPage() {
       }
     }
     checkStatus();
-  }, [router]);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -50,12 +51,12 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || "Đăng nhập thất bại");
+        throw new Error(data.error || t("auth.login.errorGeneric"));
       }
 
       window.location.href = "/";
     } catch (err: unknown) {
-      setError(err instanceof Error ? err.message : "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.");
+      setError(err instanceof Error ? err.message : t("auth.login.errorGeneric"));
     } finally {
       setLoading(false);
     }
@@ -66,14 +67,19 @@ export default function LoginPage() {
       <div className="min-h-screen bg-[#080c14] flex items-center justify-center">
         <div className="flex items-center space-x-3 text-emerald-400">
           <div className="w-5 h-5 border-2 border-emerald-400 border-t-transparent rounded-full animate-spin" />
-          <span className="text-sm font-medium">Đang tải...</span>
+          <span className="text-sm font-medium">{t("common.loading")}</span>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12">
+    <div className="min-h-screen server-grid-bg bg-[#080c14] flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8 py-12 relative">
+      {/* Language Switcher in top right corner */}
+      <div className="absolute top-4 right-4 sm:top-6 sm:right-6">
+        <LanguageSwitcher />
+      </div>
+
       <div className="w-full max-w-md">
         {/* Server Brand Header */}
         <div className="text-center mb-8">
@@ -81,10 +87,11 @@ export default function LoginPage() {
             <Server className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
-            HP ProLiant <span className="text-emerald-400">DL380 Gen9</span>
+            {t("auth.login.title")}{" "}
+            <span className="text-emerald-400">{t("auth.login.model")}</span>
           </h1>
           <p className="mt-2 text-sm text-gray-400">
-            Hệ thống điều khiển quạt & Giám sát nhiệt độ máy chủ iLO 4
+            {t("auth.login.subtitle")}
           </p>
         </div>
 
@@ -95,7 +102,7 @@ export default function LoginPage() {
 
           <div className="flex items-center space-x-2 mb-6">
             <ShieldCheck className="w-5 h-5 text-emerald-400" />
-            <h2 className="text-lg font-bold text-white">Xác thực Quản trị</h2>
+            <h2 className="text-lg font-bold text-white">{t("auth.login.boxTitle")}</h2>
           </div>
 
           {error && (
@@ -108,7 +115,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                Tài khoản Quản trị
+                {t("auth.login.usernameLabel")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -117,9 +124,10 @@ export default function LoginPage() {
                 <input
                   type="text"
                   required
+                  autoComplete="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Nhập tên tài khoản admin"
+                  placeholder={t("auth.login.usernamePlaceholder")}
                   className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
               </div>
@@ -127,7 +135,7 @@ export default function LoginPage() {
 
             <div>
               <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-2">
-                Mật khẩu
+                {t("auth.login.passwordLabel")}
               </label>
               <div className="relative">
                 <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-gray-400">
@@ -136,9 +144,10 @@ export default function LoginPage() {
                 <input
                   type={showPassword ? "text" : "password"}
                   required
+                  autoComplete="current-password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
+                  placeholder={t("auth.login.passwordPlaceholder")}
                   className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-900/90 border border-gray-700/80 text-white placeholder-gray-500 text-sm focus:outline-none focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 transition-all"
                 />
                 <button
@@ -157,10 +166,10 @@ export default function LoginPage() {
               className="w-full py-3 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/50 hover:shadow-emerald-700/60 transition-all flex items-center justify-center space-x-2 disabled:opacity-60"
             >
               {loading ? (
-                <span>Đang xác thực...</span>
+                <span>{t("auth.login.submitting")}</span>
               ) : (
                 <>
-                  <span>Đăng nhập hệ thống</span>
+                  <span>{t("auth.login.submitButton")}</span>
                   <ArrowRight className="w-4 h-4" />
                 </>
               )}
@@ -172,14 +181,14 @@ export default function LoginPage() {
               href="/setup"
               className="text-xs text-emerald-400 hover:text-emerald-300 font-medium inline-flex items-center space-x-1"
             >
-              <span>Chưa tạo tài khoản Admin? Khởi tạo hệ thống lần đầu →</span>
+              <span>{t("auth.login.setupLink")}</span>
             </Link>
           </div>
         </div>
 
         {/* Footer info */}
         <p className="mt-8 text-center text-xs text-gray-400">
-          Tương thích máy chủ HP Gen8 & Gen9 với iLO 4 Patched Firmware (Silence of the Fans)
+          {t("auth.login.compatibleNote")}
         </p>
       </div>
     </div>

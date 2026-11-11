@@ -24,8 +24,10 @@ import {
   Play,
 } from "lucide-react";
 import { ServerThermalData, FanPreset, LogEntry } from "@/types";
+import { useTranslation } from "../contexts/LanguageContext";
 
 export default function DashboardPage() {
+  const { t } = useTranslation();
   const [thermalData, setThermalData] = useState<ServerThermalData | null>(null);
   const [presets, setPresets] = useState<FanPreset[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -290,7 +292,7 @@ export default function DashboardPage() {
 
   // Delete custom preset
   const handleDeletePreset = async (id: string, name: string) => {
-    if (!confirm(`Bạn có chắc chắn muốn xóa Preset "${name}" không?`)) return;
+    if (!confirm(t("dashboard.presets.deleteConfirm", { name }))) return;
 
     try {
       const res = await fetch("/api/ilo/presets", {
@@ -345,10 +347,10 @@ export default function DashboardPage() {
               <AlertCircle className="w-5 h-5 text-amber-400 shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold text-amber-200">
-                  Hệ thống đang chạy chế độ mô phỏng (Mock Mode)
+                  {t("dashboard.banners.mockTitle")}
                 </h3>
                 <p className="text-xs text-amber-300/80">
-                  Bạn có thể vào trang Cấu hình iLO để nhập IP máy chủ, tài khoản và mật khẩu iLO thật.
+                  {t("dashboard.banners.mockDescription")}
                 </p>
               </div>
             </div>
@@ -356,7 +358,7 @@ export default function DashboardPage() {
               href="/settings"
               className="px-4 py-2 text-xs font-semibold rounded-lg bg-amber-500 hover:bg-amber-400 text-black transition-colors whitespace-nowrap shadow-md shadow-amber-900/30"
             >
-              Vào trang Cài đặt iLO →
+              {t("dashboard.banners.mockButton")}
             </Link>
           </div>
         )}
@@ -368,10 +370,10 @@ export default function DashboardPage() {
               <AlertCircle className="w-5 h-5 text-rose-400 shrink-0" />
               <div>
                 <h3 className="text-sm font-semibold text-rose-200">
-                  Không thể kết nối Redfish tới iLO ({thermalData.iloHost || "Máy chủ"})
+                  {t("dashboard.banners.errorTitle", { host: thermalData.iloHost || "iLO" })}
                 </h3>
                 <p className="text-xs text-rose-300/80">
-                  {thermalData.connectionError}. Đang tạm hiển thị dữ liệu gần nhất.
+                  {t("dashboard.banners.errorDescription", { error: thermalData.connectionError })}
                 </p>
               </div>
             </div>
@@ -379,7 +381,7 @@ export default function DashboardPage() {
               href="/settings"
               className="px-4 py-2 text-xs font-semibold rounded-lg bg-rose-500 hover:bg-rose-400 text-white transition-colors whitespace-nowrap shadow-md shadow-rose-900/30"
             >
-              Kiểm tra cấu hình iLO →
+              {t("dashboard.banners.errorButton")}
             </Link>
           </div>
         )}
@@ -396,19 +398,19 @@ export default function DashboardPage() {
                   {thermalData?.serverModel || "HPE ProLiant DL380 Gen9"}
                 </h1>
                 <span className="text-xs px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono">
-                  2U Rack Server
+                  {t("dashboard.chassis.badge2U")}
                 </span>
               </div>
               <p className="text-xs text-gray-400">
-                Firmware: <span className="text-gray-300 font-mono">{thermalData?.iloFirmware || "iLO 4 v2.77"}</span> • Hệ thống làm mát:{" "}
-                <span className="text-emerald-400 font-semibold">6 Quạt tản nhiệt kép (Hot-plug Redundant)</span>
+                Firmware: <span className="text-gray-300 font-mono">{thermalData?.iloFirmware || "iLO 4 v2.77"}</span> • {t("dashboard.chassis.coolingSystem")}{" "}
+                <span className="text-emerald-400 font-semibold">{t("dashboard.chassis.redundantFans")}</span>
               </p>
             </div>
 
             {/* Quick Stats Cards */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">Tốc độ Quạt TB</span>
+                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.fanT1Speed")}</span>
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-xl font-bold font-mono text-emerald-400">{avgSpeed}%</span>
                   <span className="text-[10px] text-gray-400">PWM</span>
@@ -416,7 +418,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">Nhiệt độ CPU Max</span>
+                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.cpuMaxTemp")}</span>
                 <div className="flex items-baseline space-x-1.5">
                   <span className={`text-xl font-bold font-mono ${maxCpuTemp > 70 ? "text-rose-400" : "text-emerald-400"}`}>
                     {maxCpuTemp > 0 ? `${maxCpuTemp}°C` : "N/A"}
@@ -426,7 +428,7 @@ export default function DashboardPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">Nhiệt độ Phòng máy</span>
+                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.ambientTemp")}</span>
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-xl font-bold font-mono text-cyan-400">
                     {ambientSensor ? `${ambientSensor.temperature}°C` : "24°C"}
@@ -436,10 +438,10 @@ export default function DashboardPage() {
               </div>
 
               <div className="p-3 rounded-xl bg-gray-900/80 border border-gray-800">
-                <span className="text-[11px] text-gray-400 block mb-1">Cụm Quạt Chassis</span>
+                <span className="text-[11px] text-gray-400 block mb-1">{t("dashboard.chassis.chassisFans")}</span>
                 <div className="flex items-baseline space-x-1.5">
                   <span className="text-xl font-bold font-mono text-white">6 / 6</span>
-                  <span className="text-[10px] text-emerald-400 font-semibold">Ready</span>
+                  <span className="text-[10px] text-emerald-400 font-semibold">{t("dashboard.chassis.ready")}</span>
                 </div>
               </div>
             </div>
@@ -457,8 +459,8 @@ export default function DashboardPage() {
                     <Sliders className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-white text-base">Đồng bộ Cả 6 Quạt (Master)</h2>
-                    <p className="text-xs text-gray-400">Điều chỉnh tất cả quạt DL380 G9 cùng lúc</p>
+                    <h2 className="font-bold text-white text-base">{t("dashboard.fans.masterTitle")}</h2>
+                    <p className="text-xs text-gray-400">{t("dashboard.fans.masterSubtitle")}</p>
                   </div>
                 </div>
                 <span className="text-lg font-mono font-extrabold text-emerald-400 bg-emerald-500/10 px-3 py-1 rounded-xl border border-emerald-500/30">
@@ -476,9 +478,9 @@ export default function DashboardPage() {
                   className="w-full accent-emerald-500 cursor-pointer"
                 />
                 <div className="flex justify-between text-xs font-mono text-gray-400">
-                  <span>An toàn: {minFanSpeed}%</span>
-                  <span>Cân bằng: 35%</span>
-                  <span>Max: {maxFanSpeed}%</span>
+                  <span>{t("dashboard.fans.safeLabel", { min: minFanSpeed })}</span>
+                  <span>{t("dashboard.fans.balancedLabel", { speed: 35 })}</span>
+                  <span>{t("dashboard.fans.maxLabel", { max: maxFanSpeed })}</span>
                 </div>
               </div>
             </div>
@@ -489,7 +491,7 @@ export default function DashboardPage() {
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <Play className="w-4 h-4 fill-current" />
-              <span>{isApplying ? "Đang gửi SSH tới iLO..." : "Áp dụng cho Cả 6 Quạt"}</span>
+              <span>{isApplying ? t("dashboard.fans.applyingMaster") : t("dashboard.fans.applyMaster")}</span>
             </button>
           </div>
 
@@ -502,8 +504,8 @@ export default function DashboardPage() {
                     <Zap className="w-5 h-5" />
                   </div>
                   <div>
-                    <h2 className="font-bold text-white text-base">Chế độ Cài đặt sẵn (Fan Presets)</h2>
-                    <p className="text-xs text-gray-400">Chuyển đổi profile âm lượng và làm mát chỉ với 1 cú nhấp chuột</p>
+                    <h2 className="font-bold text-white text-base">{t("dashboard.presets.title")}</h2>
+                    <p className="text-xs text-gray-400">{t("dashboard.presets.description")}</p>
                   </div>
                 </div>
 
@@ -512,7 +514,7 @@ export default function DashboardPage() {
                   className="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition-all"
                 >
                   <Plus className="w-3.5 h-3.5" />
-                  <span>Lưu Preset mới</span>
+                  <span>{t("dashboard.presets.addCustomPreset")}</span>
                 </button>
               </div>
 
@@ -520,6 +522,13 @@ export default function DashboardPage() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
                 {presets.map((preset) => {
                   const targetSpeed = Array.isArray(preset.speeds) ? preset.speeds[0] : 20;
+                  const isDefault = ["silent", "balanced", "performance", "turbine"].includes(preset.id);
+                  const displayName = isDefault
+                    ? t(`dashboard.presets.items.${preset.id}.name`)
+                    : preset.name;
+                  const displayDesc = isDefault
+                    ? t(`dashboard.presets.items.${preset.id}.desc`)
+                    : preset.description;
 
                   return (
                     <div
@@ -529,15 +538,15 @@ export default function DashboardPage() {
                       <div>
                         <div className="flex items-center justify-between">
                           <h3 className="font-bold text-white text-sm group-hover:text-emerald-400 transition-colors">
-                            {preset.name}
+                            {displayName}
                           </h3>
                           <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20">
                             {targetSpeed}%
                           </span>
                         </div>
-                        {preset.description && (
+                        {displayDesc && (
                           <p className="text-[11px] text-gray-400 mt-1 line-clamp-2">
-                            {preset.description}
+                            {displayDesc}
                           </p>
                         )}
                       </div>
@@ -549,14 +558,14 @@ export default function DashboardPage() {
                           className="px-3 py-1 rounded-lg bg-emerald-600/80 hover:bg-emerald-500 text-white text-xs font-medium transition-all flex items-center space-x-1 disabled:opacity-50"
                         >
                           <Play className="w-3 h-3 fill-current" />
-                          <span>Kích hoạt</span>
+                          <span>{t("dashboard.presets.applyButton")}</span>
                         </button>
 
                         {/* Allow deleting custom presets (not default ones) */}
-                        {!["silent", "balanced", "performance", "turbine"].includes(preset.id) && (
+                        {!isDefault && (
                           <button
                             onClick={() => handleDeletePreset(preset.id, preset.name)}
-                            title="Xóa preset này"
+                            title={t("dashboard.presets.deleteTooltip")}
                             className="p-1 rounded text-gray-400 hover:text-rose-400 hover:bg-gray-800 transition-colors"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -570,7 +579,7 @@ export default function DashboardPage() {
             </div>
 
             <p className="text-[11px] text-gray-400 italic">
-              * Mẹo: Các quạt sẽ được gửi lệnh SSH tuần tự để tránh sốc dòng điện khởi động của hệ thống nguồn 500W/800W.
+              {t("dashboard.presets.tipSequential")}
             </p>
           </div>
         </div>
@@ -581,15 +590,15 @@ export default function DashboardPage() {
             <div>
               <h2 className="text-lg font-bold text-white tracking-wide flex items-center space-x-2">
                 <Server className="w-5 h-5 text-emerald-400" />
-                <span>Sơ đồ 6 Module Quạt Chassis (DL380 Gen9 Fan Bays)</span>
+                <span>{t("dashboard.fans.title")}</span>
               </h2>
               <p className="text-xs text-gray-400">
-                Thứ tự bố trí từ Fan 1 (trái) đến Fan 6 (phải) phía trước mainboard máy chủ
+                {t("dashboard.fans.description")}
               </p>
             </div>
             {Object.keys(pendingSpeeds).length > 0 && (
               <span className="text-xs font-mono text-amber-400 bg-amber-500/10 px-3 py-1 rounded-full border border-amber-500/20">
-                Có {Object.keys(pendingSpeeds).length} quạt đang chờ áp dụng
+                {t("dashboard.fans.pendingBadge", { count: Object.keys(pendingSpeeds).length })}
               </span>
             )}
           </div>
@@ -610,7 +619,7 @@ export default function DashboardPage() {
               ))
             ) : (
               <div className="col-span-full py-12 text-center text-gray-400 italic">
-                Đang nạp thông tin quạt từ iLO...
+                {t("dashboard.fans.loadingFans")}
               </div>
             )}
           </div>
@@ -629,22 +638,22 @@ export default function DashboardPage() {
           <div className="w-full max-w-md rounded-2xl border border-gray-800 bg-[#0f172a] p-6 shadow-2xl space-y-4">
             <div className="flex items-center space-x-2">
               <BookmarkPlus className="w-5 h-5 text-emerald-400" />
-              <h3 className="text-lg font-bold text-white">Lưu cấu hình hiện tại thành Preset</h3>
+              <h3 className="text-lg font-bold text-white">{t("dashboard.modal.title")}</h3>
             </div>
 
             <p className="text-xs text-gray-400">
-              Tạo chế độ tùy chỉnh với tốc độ của 6 quạt hiện tại để dễ dàng kích hoạt lại sau này.
+              {t("dashboard.modal.description")}
             </p>
 
             <form onSubmit={handleSavePreset} className="space-y-4 pt-2">
               <div>
                 <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                  Tên Preset
+                  {t("dashboard.modal.nameLabel")}
                 </label>
                 <input
                   type="text"
                   required
-                  placeholder="Ví dụ: Chế độ Xem Phim Ban Đêm"
+                  placeholder={t("dashboard.modal.namePlaceholder")}
                   value={newPresetName}
                   onChange={(e) => setNewPresetName(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:border-emerald-500"
@@ -653,11 +662,11 @@ export default function DashboardPage() {
 
               <div>
                 <label className="block text-xs font-semibold text-gray-300 uppercase tracking-wider mb-1.5">
-                  Mô tả ghi chú (tùy chọn)
+                  {t("dashboard.modal.descLabel")}
                 </label>
                 <input
                   type="text"
-                  placeholder="Tốc độ quạt êm ái khi không chạy tải nặng..."
+                  placeholder={t("dashboard.modal.descPlaceholder")}
                   value={newPresetDesc}
                   onChange={(e) => setNewPresetDesc(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl bg-gray-900 border border-gray-700 text-white text-sm focus:outline-none focus:border-emerald-500"
@@ -670,13 +679,13 @@ export default function DashboardPage() {
                   onClick={() => setShowPresetModal(false)}
                   className="px-4 py-2 rounded-xl text-gray-400 hover:text-white text-xs font-semibold"
                 >
-                  Hủy bỏ
+                  {t("dashboard.modal.cancelButton")}
                 </button>
                 <button
                   type="submit"
                   className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-semibold shadow-lg shadow-emerald-900/40"
                 >
-                  Lưu Preset
+                  {t("dashboard.modal.saveButton")}
                 </button>
               </div>
             </form>

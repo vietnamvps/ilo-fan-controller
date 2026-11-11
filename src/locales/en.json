@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "title": "HPE DL380 Gen9 - iLO 4 Fan Controller & Thermal Monitor",
+    "description": "Professional fan control and thermal monitoring web management system for HP ProLiant DL380 Gen9 with patched iLO 4 firmware"
+  },
+  "common": {
+    "save": "Save",
+    "saving": "Saving...",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "refresh": "Refresh",
+    "refreshing": "Refreshing...",
+    "autoRefresh": "Auto {seconds}s",
+    "loading": "Loading...",
+    "checking": "Checking...",
+    "success": "Success",
+    "error": "Error",
+    "status": "Status",
+    "online": "Online",
+    "offline": "Offline",
+    "confirm": "Confirm",
+    "close": "Close",
+    "actions": "Actions",
+    "seconds": "seconds",
+    "secondsShort": "s"
+  },
+  "header": {
+    "brandSubtitle": "iLO 4 Advanced Thermal Management",
+    "navFansThermal": "Fans & Thermal",
+    "navIloConfig": "iLO Config",
+    "badgeMockMode": "Simulation (Mock Mode)",
+    "badgeOnline": "iLO 4 Online",
+    "logout": "Logout"
+  },
+  "auth": {
+    "login": {
+      "title": "HP ProLiant",
+      "model": "DL380 Gen9",
+      "subtitle": "Fan Control & Server Thermal Monitoring System for iLO 4",
+      "boxTitle": "Admin Authentication",
+      "usernameLabel": "Admin Username",
+      "usernamePlaceholder": "admin",
+      "passwordLabel": "Password",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Sign In to System",
+      "submitting": "Authenticating...",
+      "setupLink": "No Admin account yet? Initial setup wizard →",
+      "compatibleNote": "Compatible with HP Gen8 & Gen9 servers running patched iLO 4 firmware (Silence of the Fans)",
+      "errorRequired": "Please enter both username and password",
+      "errorInvalid": "Invalid username or password",
+      "errorGeneric": "Authentication failed. Please check your credentials."
+    },
+    "setup": {
+      "brandBadge": "First-Time Setup",
+      "title": "Fan Management System",
+      "model": "HPE DL380 Gen9",
+      "description": "Welcome! Please create an administrator account to secure your server control panel.",
+      "step1Title": "1. Create Administrator Account",
+      "stepRequired": "Required",
+      "usernameLabel": "Username",
+      "usernamePlaceholder": "admin",
+      "passwordLabel": "Admin Password",
+      "confirmPasswordLabel": "Confirm Password",
+      "step2Title": "2. Connect iLO 4 Server (Optional)",
+      "stepOptional": "Can be filled later",
+      "iloHostLabel": "iLO IP Address / Host",
+      "iloHostPlaceholder": "e.g. 192.168.1.100",
+      "sshPortLabel": "SSH Port",
+      "iloUsernameLabel": "iLO Username",
+      "iloUsernamePlaceholder": "Administrator",
+      "iloPasswordLabel": "iLO Password",
+      "minFanSpeedLabel": "Safe minimum fan speed limit: {speed}%",
+      "databaseNotice": "Account credentials, iLO configurations, and fan presets are securely stored in SQLite: /app/data/app.db.",
+      "submitButton": "Finish Setup & Open Dashboard",
+      "submitting": "Initializing system...",
+      "checkingStatus": "Checking system status...",
+      "errorUsernameLength": "Admin username must be at least 3 characters long.",
+      "errorPasswordLength": "Admin password must be at least 6 characters long.",
+      "errorPasswordMismatch": "Password confirmation does not match.",
+      "errorFailed": "Initialization failed."
+    }
+  },
+  "dashboard": {
+    "chassis": {
+      "badge2U": "2U Rack Server",
+      "fanT1Speed": "Avg Fan Speed",
+      "cpuMaxTemp": "Max CPU Temp",
+      "ambientTemp": "Ambient Temp",
+      "chassisFans": "Chassis Fan Bays",
+      "fansCount": "{active} / {total} Fans",
+      "ready": "Ready",
+      "coolingSystem": "Cooling System:",
+      "redundantFans": "6 Hot-plug Redundant Fans",
+      "lastUpdated": "Updated at: {time}"
+    },
+    "banners": {
+      "mockTitle": "System is running in Simulation Mode (Mock Mode)",
+      "mockDescription": "You can visit the iLO Configuration page to set your real server IP, username, and password.",
+      "mockButton": "Go to iLO Settings →",
+      "errorTitle": "Unable to connect Redfish to iLO ({host})",
+      "errorDescription": "{error}. Temporarily displaying recent data.",
+      "errorButton": "Check iLO Configuration →"
+    },
+    "fans": {
+      "title": "6 Chassis Fan Modules Layout (DL380 Gen9 Fan Bays)",
+      "description": "Sequential layout from Fan 1 (left) to Fan 6 (right) across server front mainboard",
+      "safeLimitBadge": "Safe limit: {min}% - {max}%",
+      "setAllSpeed": "Set all fans speed:",
+      "applyAll": "Apply to All",
+      "applying": "Sending command...",
+      "pendingBadge": "{count} fan(s) pending application",
+      "loadingFans": "Loading fan telemetry from iLO...",
+      "masterTitle": "Master All 6 Fans Sync",
+      "masterSubtitle": "Synchronize all DL380 G9 fans simultaneously",
+      "safeLabel": "Safe: {min}%",
+      "balancedLabel": "Balanced: {speed}%",
+      "maxLabel": "Max: {max}%",
+      "applyMaster": "Apply to All 6 Fans",
+      "applyingMaster": "Sending SSH commands to iLO...",
+      "fanCard": {
+        "fanLabel": "Fan #{index}",
+        "bayLabel": "DL380 Fan Bay #{index}",
+        "statusOk": "Healthy",
+        "statusWarning": "Warning",
+        "statusCritical": "Critical",
+        "statusUnknown": "Unknown",
+        "currentReading": "Current:",
+        "newSpeed": "➔ New: {speed}%",
+        "targetSpeed": "Target Speed",
+        "apply": "Apply",
+        "applySpeed": "Apply {speed}%",
+        "applyingSpeed": "Sending...",
+        "minSafe": "Min safe: {min}%",
+        "stepDown": "Decrease 5%",
+        "stepUp": "Increase 5%",
+        "toMin": "Set to safe minimum",
+        "min": "Min",
+        "levels": {
+          "silent": "Quiet",
+          "balanced": "Balanced",
+          "high": "High Load",
+          "turbine": "Turbine Max"
+        }
+      }
+    },
+    "presets": {
+      "title": "Quick Cooling Presets",
+      "description": "Select pre-configured cooling profiles to quickly switch fan curves according to actual workloads.",
+      "addCustomPreset": "Save New Preset",
+      "activeBadge": "Active",
+      "applyButton": "Activate",
+      "applyingButton": "Activating...",
+      "deleteTooltip": "Delete this preset",
+      "deleteConfirm": "Are you sure you want to delete preset \"{name}\"?",
+      "tipSequential": "* Tip: Fans are pulsed sequentially via SSH to prevent inrush current surges on 500W/800W power supplies.",
+      "items": {
+        "silent": {
+          "name": "Ultra Quiet (Silent)",
+          "desc": "15% speed - Extremely quiet, ideal for office or home lab environments."
+        },
+        "balanced": {
+          "name": "Balanced",
+          "desc": "30% speed - Balanced acoustics and cooling for standard everyday operations."
+        },
+        "performance": {
+          "name": "Performance",
+          "desc": "60% speed - Powerful cooling for heavy compute, rendering, and high virtualization loads."
+        },
+        "turbine": {
+          "name": "Turbine Boost (100% Max)",
+          "desc": "100% speed - Maximum thermal exhaust, full turbine aircraft sound level."
+        }
+      }
+    },
+    "sensors": {
+      "title": "HP DL380 G9 Temperature Sensors",
+      "description": "Real-time telemetry from iLO 4 Redfish Thermal API",
+      "sensorCount": "{count} Sensors",
+      "activeCount": "{count} Active Sensors",
+      "threshold": "Threshold: <{temp}°C",
+      "critThreshold": "Critical threshold: {temp}°C",
+      "statusOk": "Good",
+      "statusWarning": "Warning",
+      "statusCritical": "Overheating",
+      "empty": "No temperature sensor readings found"
+    },
+    "logs": {
+      "title": "iLO Terminal Logs (SSH & Redfish)",
+      "description": "Live CLI response output for fan p <n> max commands executed over SSH to iLO 4.",
+      "linesCount": "{count} lines",
+      "clearButton": "Clear Logs",
+      "clearTitle": "Clear action logs",
+      "empty": "No operations recorded yet. Try adjusting fan speeds or applying presets to view logs."
+    },
+    "modal": {
+      "title": "Save Current Configuration as Preset",
+      "description": "Create a custom profile using current 6 fan speeds for instant recall.",
+      "nameLabel": "Preset Name",
+      "namePlaceholder": "e.g. Night Gaming, Crypto Mining, Rendering...",
+      "descLabel": "Profile Description",
+      "descPlaceholder": "Brief notes on the operational goal of this profile...",
+      "cancelButton": "Cancel",
+      "speedsLabel": "Configure individual fan speeds",
+      "saveButton": "Save Preset",
+      "savingButton": "Saving...",
+      "errorNameRequired": "Please enter a preset name"
+    }
+  },
+  "settings": {
+    "title": "System Settings & Management",
+    "subtitle": "Manage HP ProLiant DL380 G9 connection settings and application security",
+    "tabIlo": "iLO 4 Configuration",
+    "tabSecurity": "Security & Account",
+    "ilo": {
+      "cardTitle": "iLO 4 Server Information",
+      "cardSubtitle": "IP address, iLO management credentials, and connection ports",
+      "testButton": "Test iLO Connection",
+      "testingButton": "Testing...",
+      "hostLabel": "iLO 4 IP Address or Hostname",
+      "hostHint": "IP address of dedicated iLO network port.",
+      "sshPortLabel": "SSH Port",
+      "usernameLabel": "iLO Username",
+      "passwordLabel": "iLO Password",
+      "passwordSavedNote": "(saved password present)",
+      "passwordKeepPlaceholder": "•••••••••••• (Keep unchanged)",
+      "passwordNewPlaceholder": "Enter iLO password",
+      "sectionOperation": "Operating Parameters & Safety Thresholds",
+      "minFanLabel": "Safe Minimum Fan Speed (%)",
+      "minFanHint": "Recommended: 15% - 20%. Do not set below 10% to prevent component overheating.",
+      "autoRefreshLabel": "Auto-Refresh Interval (seconds)",
+      "autoRefreshHint": "Query frequency for Redfish Thermal API (default 5s).",
+      "mockModeTitle": "Simulation Mode (Mock Simulation)",
+      "mockModeActiveBadge": "Active",
+      "mockModeActiveWarning": "⚠️ Active: System will NOT send SSH commands to the real server. Turn OFF this switch to control real HP DL380 Gen9 fans.",
+      "mockModeDisabledHint": "Enable when testing the web interface or when the real server is powered off / in maintenance.",
+      "saveButton": "Save iLO Config",
+      "savingButton": "Saving...",
+      "saveSuccess": "iLO connection configuration saved successfully!"
+    },
+    "test": {
+      "title": "Direct Connection Results:",
+      "restLabel": "Redfish REST API:",
+      "sshLabel": "iLO SSH Fan Hack:",
+      "successAutoDisabledMock": "iLO connection verified! Automatically switched to real server mode (Mock Mode disabled)!"
+    },
+    "security": {
+      "cardTitle": "Web Administrator Account",
+      "cardSubtitle": "Change application login password",
+      "usernameLabel": "Username",
+      "currentPasswordLabel": "Current Password",
+      "currentPasswordPlaceholder": "••••••••",
+      "newPasswordLabel": "New Password",
+      "newPasswordPlaceholder": "Minimum 6 characters",
+      "confirmPasswordLabel": "Confirm New Password",
+      "confirmPasswordPlaceholder": "Re-enter new password",
+      "submitButton": "Update Password",
+      "submittingButton": "Updating...",
+      "errorMismatch": "New password and confirmation do not match",
+      "errorLength": "New password must be at least 6 characters long",
+      "success": "Admin login password updated successfully!"
+    },
+    "firmwareNote": {
+      "title": "iLO 4 Firmware Notes",
+      "description": "HP DL380 G9 requires patched firmware iLO 4 v2.77 Fan Hack to unlock SSH fan control commands:",
+      "command": "fan p <bay_id> max <0-255>",
+      "bayExample": "Bay ID for DL380 Gen9 ranges from 0 to 5 for Fan 1 through 6. PWM values range from 0 (stopped) to 255 (100% duty cycle).",
+      "note": "Once applied, iLO maintains the designated fan speed without ramp-up alarms when third-party PCIe cards (e.g. GPUs or 10GbE NICs) are installed."
+    }
+  }
+}

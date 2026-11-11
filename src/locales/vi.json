@@ -1,0 +1,271 @@
+{
+  "meta": {
+    "title": "HPE DL380 Gen9 - iLO 4 Fan Controller & Thermal Monitor",
+    "description": "Trình quản trị và điều khiển quạt chuyên nghiệp cho máy chủ HP ProLiant DL380 Gen9 với iLO 4 Patched Firmware"
+  },
+  "common": {
+    "save": "Lưu",
+    "saving": "Đang lưu...",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "refresh": "Làm mới",
+    "refreshing": "Đang làm mới...",
+    "autoRefresh": "Tự động {seconds}s",
+    "loading": "Đang tải...",
+    "checking": "Đang kiểm tra...",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "status": "Trạng thái",
+    "online": "Trực tuyến",
+    "offline": "Ngoại tuyến",
+    "confirm": "Xác nhận",
+    "close": "Đóng",
+    "actions": "Thao tác",
+    "seconds": "giây",
+    "secondsShort": "s"
+  },
+  "header": {
+    "brandSubtitle": "iLO 4 Advanced Thermal Management",
+    "navFansThermal": "Quạt & Nhiệt độ",
+    "navIloConfig": "Cấu hình iLO",
+    "badgeMockMode": "Chế độ Giả lập (Mock Mode)",
+    "badgeOnline": "iLO 4 Online",
+    "logout": "Thoát"
+  },
+  "auth": {
+    "login": {
+      "title": "HP ProLiant",
+      "model": "DL380 Gen9",
+      "subtitle": "Hệ thống điều khiển quạt & Giám sát nhiệt độ máy chủ iLO 4",
+      "boxTitle": "Xác thực Quản trị",
+      "usernameLabel": "Tài khoản Quản trị",
+      "usernamePlaceholder": "admin",
+      "passwordLabel": "Mật khẩu",
+      "passwordPlaceholder": "••••••••",
+      "submitButton": "Đăng nhập hệ thống",
+      "submitting": "Đang xác thực...",
+      "setupLink": "Chưa tạo tài khoản Admin? Khởi tạo hệ thống lần đầu →",
+      "compatibleNote": "Tương thích máy chủ HP Gen8 & Gen9 với iLO 4 Patched Firmware (Silence of the Fans)",
+      "errorRequired": "Vui lòng nhập tên người dùng và mật khẩu",
+      "errorInvalid": "Tên đăng nhập hoặc mật khẩu không chính xác",
+      "errorGeneric": "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản."
+    },
+    "setup": {
+      "brandBadge": "Thiết lập Ban đầu (First-Time Setup)",
+      "title": "Hệ thống Quản trị Quạt",
+      "model": "HPE DL380 Gen9",
+      "description": "Chào mừng bạn! Vui lòng tạo tài khoản Quản trị viên để bảo vệ trang điều khiển máy chủ.",
+      "step1Title": "1. Tạo tài khoản Quản trị viên (Admin)",
+      "stepRequired": "Bắt buộc",
+      "usernameLabel": "Tên tài khoản",
+      "usernamePlaceholder": "admin",
+      "passwordLabel": "Mật khẩu quản trị",
+      "confirmPasswordLabel": "Xác nhận mật khẩu",
+      "step2Title": "2. Kết nối iLO 4 Máy chủ (Tùy chọn)",
+      "stepOptional": "Có thể điền sau",
+      "iloHostLabel": "Địa chỉ IP / Host iLO",
+      "iloHostPlaceholder": "VD: 192.168.1.100",
+      "sshPortLabel": "Cổng SSH",
+      "iloUsernameLabel": "Tài khoản iLO",
+      "iloUsernamePlaceholder": "Administrator",
+      "iloPasswordLabel": "Mật khẩu card iLO",
+      "minFanSpeedLabel": "Tốc độ quạt tối thiểu an toàn: {speed}%",
+      "databaseNotice": "Dữ liệu tài khoản, cấu hình iLO và profile quạt sẽ được lưu trữ an toàn trong tệp SQLite: /app/data/app.db.",
+      "submitButton": "Hoàn tất cài đặt & Vào Dashboard",
+      "submitting": "Đang khởi tạo hệ thống...",
+      "checkingStatus": "Đang kiểm tra trạng thái hệ thống...",
+      "errorUsernameLength": "Tên tài khoản quản trị phải có ít nhất 3 ký tự.",
+      "errorPasswordLength": "Mật khẩu quản trị phải có ít nhất 6 ký tự.",
+      "errorPasswordMismatch": "Mật khẩu xác nhận không khớp.",
+      "errorFailed": "Khởi tạo thất bại."
+    }
+  },
+  "dashboard": {
+    "chassis": {
+      "badge2U": "2U Rack Server",
+      "fanT1Speed": "Tốc độ Quạt TB",
+      "cpuMaxTemp": "Nhiệt độ CPU Max",
+      "ambientTemp": "Nhiệt độ Phòng máy",
+      "chassisFans": "Cụm Quạt Chassis",
+      "fansCount": "{active} / {total} Quạt",
+      "ready": "Ready",
+      "coolingSystem": "Hệ thống làm mát:",
+      "redundantFans": "6 Quạt tản nhiệt kép (Hot-plug Redundant)",
+      "lastUpdated": "Cập nhật lúc: {time}"
+    },
+    "banners": {
+      "mockTitle": "Hệ thống đang chạy chế độ mô phỏng (Mock Mode)",
+      "mockDescription": "Bạn có thể vào trang Cấu hình iLO để nhập IP máy chủ, tài khoản và mật khẩu iLO thật.",
+      "mockButton": "Vào trang Cài đặt iLO →",
+      "errorTitle": "Không thể kết nối Redfish tới iLO ({host})",
+      "errorDescription": "{error}. Đang tạm hiển thị dữ liệu gần nhất.",
+      "errorButton": "Kiểm tra cấu hình iLO →"
+    },
+    "fans": {
+      "title": "Sơ đồ 6 Module Quạt Chassis (DL380 Gen9 Fan Bays)",
+      "description": "Thứ tự bố trí từ Fan 1 (trái) đến Fan 6 (phải) phía trước mainboard máy chủ",
+      "safeLimitBadge": "Giới hạn an toàn: {min}% - {max}%",
+      "setAllSpeed": "Đặt tốc độ tất cả:",
+      "applyAll": "Áp dụng tất cả",
+      "applying": "Đang gửi lệnh...",
+      "pendingBadge": "Có {count} quạt đang chờ áp dụng",
+      "loadingFans": "Đang nạp thông tin quạt từ iLO...",
+      "masterTitle": "Đồng bộ Cả 6 Quạt (Master)",
+      "masterSubtitle": "Điều chỉnh tất cả quạt DL380 G9 cùng lúc",
+      "safeLabel": "An toàn: {min}%",
+      "balancedLabel": "Cân bằng: {speed}%",
+      "maxLabel": "Max: {max}%",
+      "applyMaster": "Áp dụng cho Cả 6 Quạt",
+      "applyingMaster": "Đang gửi SSH tới iLO...",
+      "fanCard": {
+        "fanLabel": "Quạt #{index}",
+        "bayLabel": "DL380 Fan Bay #{index}",
+        "statusOk": "Bình thường",
+        "statusWarning": "Cảnh báo",
+        "statusCritical": "Nghiêm trọng",
+        "statusUnknown": "Không xác định",
+        "currentReading": "Hiện tại:",
+        "newSpeed": "➔ Mới: {speed}%",
+        "targetSpeed": "Tốc độ mục tiêu",
+        "apply": "Áp dụng",
+        "applySpeed": "Áp dụng {speed}%",
+        "applyingSpeed": "Đang gửi...",
+        "minSafe": "Min an toàn: {min}%",
+        "stepDown": "Giảm 5%",
+        "stepUp": "Tăng 5%",
+        "toMin": "Về mức tối thiểu an toàn",
+        "min": "Min",
+        "levels": {
+          "silent": "Êm ái",
+          "balanced": "Cân bằng",
+          "high": "Tải cao",
+          "turbine": "Turbine Max"
+        }
+      }
+    },
+    "presets": {
+      "title": "Chế độ Cài đặt sẵn (Fan Presets)",
+      "description": "Chuyển đổi profile âm lượng và làm mát chỉ với 1 cú nhấp chuột",
+      "addCustomPreset": "Lưu Preset mới",
+      "activeBadge": "Đang chạy",
+      "applyButton": "Kích hoạt",
+      "applyingButton": "Đang kích hoạt...",
+      "deleteTooltip": "Xóa preset này",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa Preset \"{name}\" không?",
+      "tipSequential": "* Mẹo: Các quạt sẽ được gửi lệnh SSH tuần tự để tránh sốc dòng điện khởi động của hệ thống nguồn 500W/800W.",
+      "items": {
+        "silent": {
+          "name": "Ultra Quiet (Silent)",
+          "desc": "Tốc độ 15% - Vô cùng êm ái, lý tưởng cho phòng làm việc hoặc gia đình."
+        },
+        "balanced": {
+          "name": "Balanced (Cân bằng)",
+          "desc": "Tốc độ 30% - Cân bằng nhiệt độ và tiếng ồn trong quá trình hoạt động thường ngày."
+        },
+        "performance": {
+          "name": "Performance (Hiệu năng cao)",
+          "desc": "Tốc độ 60% - Làm mát mạnh mẽ cho các tác vụ tải nặng, render, ảo hóa cao."
+        },
+        "turbine": {
+          "name": "Turbine Boost (100% Max)",
+          "desc": "Tốc độ 100% - Giải nhiệt tối đa, âm lượng quạt phản lực cất cánh."
+        }
+      }
+    },
+    "sensors": {
+      "title": "Cảm biến Nhiệt độ HP DL380 G9",
+      "description": "Dữ liệu thời gian thực từ iLO 4 Redfish Thermal API",
+      "sensorCount": "{count} Cảm biến",
+      "activeCount": "{count} Cảm biến đang hoạt động",
+      "threshold": "Ngưỡng: <{temp}°C",
+      "critThreshold": "Ngưỡng tới hạn: {temp}°C",
+      "statusOk": "Tốt",
+      "statusWarning": "Cảnh báo",
+      "statusCritical": "Quá nhiệt",
+      "empty": "Không có dữ liệu cảm biến nhiệt độ"
+    },
+    "logs": {
+      "title": "Nhật ký iLO Terminal (SSH & Redfish)",
+      "description": "Các phản hồi lệnh fan p <n> max qua kết nối SSH tới hệ điều hành iLO 4.",
+      "linesCount": "{count} dòng",
+      "clearButton": "Xóa nhật ký",
+      "clearTitle": "Xóa nhật ký log",
+      "empty": "Chưa có lệnh nào được thực thi. Hãy chọn preset hoặc thay đổi tốc độ quạt để bắt đầu."
+    },
+    "modal": {
+      "title": "Lưu cấu hình hiện tại thành Preset",
+      "description": "Tạo chế độ tùy chỉnh với tốc độ của 6 quạt hiện tại để dễ dàng kích hoạt lại sau này.",
+      "nameLabel": "Tên Preset",
+      "namePlaceholder": "Ví dụ: Chế độ Xem Phim Ban Đêm",
+      "descLabel": "Mô tả ghi chú (tùy chọn)",
+      "descPlaceholder": "Tốc độ quạt êm ái khi không chạy tải nặng...",
+      "cancelButton": "Hủy bỏ",
+      "speedsLabel": "Thiết lập tốc độ từng quạt",
+      "saveButton": "Lưu Preset",
+      "savingButton": "Đang lưu...",
+      "errorNameRequired": "Vui lòng nhập tên cấu hình preset"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt & Quản trị Hệ thống",
+    "subtitle": "Quản lý thông tin kết nối máy chủ HP ProLiant DL380 G9 và bảo mật ứng dụng",
+    "tabIlo": "Cấu hình iLO 4",
+    "tabSecurity": "Bảo mật & Tài khoản",
+    "ilo": {
+      "cardTitle": "Thông tin iLO 4 Máy chủ",
+      "cardSubtitle": "Địa chỉ IP, tài khoản quản trị iLO và cổng kết nối",
+      "testButton": "Test Kết nối iLO",
+      "testingButton": "Đang kiểm tra...",
+      "hostLabel": "Địa chỉ IP hoặc Hostname iLO 4",
+      "hostHint": "Địa chỉ IP cổng mạng iLO chuyên dụng (Dedicated iLO Port).",
+      "sshPortLabel": "SSH Port",
+      "usernameLabel": "Tài khoản iLO (Username)",
+      "passwordLabel": "Mật khẩu iLO",
+      "passwordSavedNote": "(đã có mật khẩu lưu)",
+      "passwordKeepPlaceholder": "•••••••••••• (Giữ nguyên)",
+      "passwordNewPlaceholder": "Nhập mật khẩu iLO",
+      "sectionOperation": "Cấu hình Vận hành & Ngưỡng An toàn",
+      "minFanLabel": "Tốc độ quạt tối thiểu an toàn (%)",
+      "minFanHint": "Khuyến nghị: 15% - 20%. Không nên đặt dưới 10% để tránh quá nhiệt linh kiện.",
+      "autoRefreshLabel": "Thời gian tự động làm mới (giây)",
+      "autoRefreshHint": "Tần suất truy vấn Redfish Thermal API (mặc định 5s).",
+      "mockModeTitle": "Chế độ Mô phỏng (Mock Simulation)",
+      "mockModeActiveBadge": "Đang Bật",
+      "mockModeActiveWarning": "⚠️ Đang bật: Hệ thống sẽ KHÔNG gửi lệnh SSH đến máy chủ thật. Hãy TẮT nút này để điều khiển quạt thật của HP DL380 Gen9.",
+      "mockModeDisabledHint": "Bật khi thử nghiệm giao diện hoặc khi server thật đang tắt nguồn / bảo trì.",
+      "saveButton": "Lưu Cấu hình iLO",
+      "savingButton": "Đang lưu...",
+      "saveSuccess": "Đã lưu thông tin cấu hình iLO thành công!"
+    },
+    "test": {
+      "title": "Kết quả kiểm tra trực tiếp:",
+      "restLabel": "Redfish REST API:",
+      "sshLabel": "iLO SSH Fan Hack:",
+      "successAutoDisabledMock": "Đã kết nối iLO thành công và tự động chuyển sang chế độ máy chủ thật (Tắt Mock Mode)!"
+    },
+    "security": {
+      "cardTitle": "Tài khoản Quản trị Web",
+      "cardSubtitle": "Thay đổi mật khẩu đăng nhập ứng dụng",
+      "usernameLabel": "Tên đăng nhập",
+      "currentPasswordLabel": "Mật khẩu hiện tại",
+      "currentPasswordPlaceholder": "••••••••",
+      "newPasswordLabel": "Mật khẩu mới",
+      "newPasswordPlaceholder": "Tối thiểu 6 ký tự",
+      "confirmPasswordLabel": "Xác nhận mật khẩu mới",
+      "confirmPasswordPlaceholder": "Nhập lại mật khẩu mới",
+      "submitButton": "Đổi mật khẩu",
+      "submittingButton": "Đang cập nhật...",
+      "errorMismatch": "Mật khẩu mới và xác nhận mật khẩu không trùng khớp",
+      "errorLength": "Mật khẩu mới phải có ít nhất 6 ký tự",
+      "success": "Đã cập nhật mật khẩu đăng nhập thành công!"
+    },
+    "firmwareNote": {
+      "title": "Lưu ý về Firmware iLO 4",
+      "description": "Máy chủ HP DL380 G9 cần cài đặt bản vá firmware iLO 4 v2.77 Fan Hack để mở khóa các lệnh điều khiển quạt SSH:",
+      "command": "fan p <bay_id> max <0-255>",
+      "bayExample": "Bay ID cho DL380 Gen9 chạy từ 0 đến 5 tương ứng Quạt 1 đến 6. Giá trị PWM từ 0 (dừng) tới 255 (100% công suất).",
+      "note": "Sau khi áp dụng tốc độ, iLO sẽ duy trì tốc độ quạt được chỉ định mà không tự ý hú còi khi lắp card PCIe rời (như GPU hoặc NIC 10GbE)."
+    }
+  }
+}
