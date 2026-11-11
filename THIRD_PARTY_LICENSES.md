@@ -11,7 +11,7 @@ This project relies on open-source libraries. Below is an overview of the key di
 | [ssh2](https://github.com/mscdex/ssh2) | 1.16.0 | MIT | SSH client for communication with iLO 4 shell |
 | [jose](https://github.com/panva/jose) | 5.9.6 | MIT | JSON Web Token (JWT) signing & cryptographic verification |
 | [bcryptjs](https://github.com/dcodeIO/bcrypt.js) | 2.4.3 | MIT | Password hashing with salting |
-| [lucide-react](https://github.com/lucide-icons/lucide) | 1.71.0 | ISC | UI iconography |
+| [lucide-react](https://github.com/lucide-icons/lucide) | 1.67.0 | ISC | UI iconography |
 | [tailwindcss](https://github.com/tailwindlabs/tailwindcss) | 3.4.17 | MIT | Utility-first CSS styling framework |
 | [clsx](https://github.com/lukeed/clsx) | 2.1.1 | MIT | Class name utility |
 | [tailwind-merge](https://github.com/dcastil/tailwind-merge) | 2.6.0 | MIT | Tailwind utility merge |

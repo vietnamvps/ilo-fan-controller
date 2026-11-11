@@ -5,15 +5,18 @@ WORKDIR /app
 # Install build tools for native addons (better-sqlite3, ssh2)
 RUN apt-get update && apt-get install -y --no-install-recommends python3 make g++ && rm -rf /var/lib/apt/lists/*
 
-COPY package.json ./
-RUN npm install
+# Install pnpm 11 matching workflow and packageManager
+RUN npm install -g pnpm@11.21.0
+
+COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+RUN pnpm install --frozen-lockfile
 
 COPY . .
 
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
 
-RUN npx next build
+RUN pnpm build
 
 # Stage 2: Production runner
 FROM node:22.23.4-slim AS runner

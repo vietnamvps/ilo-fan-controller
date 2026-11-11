@@ -4,6 +4,7 @@
   "description": "Modern HP ProLiant DL380 G9 Fan Controller with Web UI, Authentication and iLO Integration",
   "license": "MIT",
   "private": true,
+  "packageManager": "pnpm@11.21.0",
   "engines": {
     "node": ">=20.9.0"
   },
