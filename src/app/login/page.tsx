@@ -2,11 +2,13 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Server, Lock, User, Eye, EyeOff, ShieldCheck, ArrowRight, AlertCircle } from "lucide-react";
 import { useTranslation } from "../../contexts/LanguageContext";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function LoginPage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
@@ -23,7 +25,7 @@ export default function LoginPage() {
         if (res.ok) {
           const data = await res.json();
           if (data.needsSetup) {
-            window.location.href = "/setup";
+            router.replace("/setup");
             return;
           }
         }
@@ -34,7 +36,7 @@ export default function LoginPage() {
       }
     }
     checkStatus();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,7 +56,8 @@ export default function LoginPage() {
         throw new Error(data.message || data.error || t("auth.login.errorGeneric"));
       }
 
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("auth.login.errorGeneric"));
     } finally {

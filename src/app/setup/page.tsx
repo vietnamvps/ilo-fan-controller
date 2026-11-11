@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import {
   Server,
   ShieldCheck,
@@ -17,6 +18,7 @@ import { useTranslation } from "../../contexts/LanguageContext";
 import LanguageSwitcher from "../../components/LanguageSwitcher";
 
 export default function SetupPage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [checking, setChecking] = useState(true);
 
@@ -44,7 +46,7 @@ export default function SetupPage() {
         if (res.ok) {
           const data = await res.json();
           if (!data.needsSetup) {
-            window.location.href = "/login";
+            router.replace("/login");
             return;
           }
         }
@@ -55,7 +57,7 @@ export default function SetupPage() {
       }
     }
     checkStatus();
-  }, []);
+  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -101,7 +103,8 @@ export default function SetupPage() {
       }
 
       // Success -> Redirect to dashboard
-      window.location.href = "/";
+      router.push("/");
+      router.refresh();
     } catch (err: unknown) {
       setError(err instanceof Error ? err.message : t("auth.setup.errorFailed"));
     } finally {

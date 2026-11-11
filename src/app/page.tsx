@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import Header from "../components/Header";
 import FanCard from "../components/FanCard";
 import ThermalGrid from "../components/ThermalGrid";
@@ -27,6 +28,7 @@ import { ServerThermalData, FanPreset, LogEntry } from "@/types";
 import { useTranslation } from "../contexts/LanguageContext";
 
 export default function DashboardPage() {
+  const router = useRouter();
   const { t } = useTranslation();
   const [thermalData, setThermalData] = useState<ServerThermalData | null>(null);
   const [presets, setPresets] = useState<FanPreset[]>([]);
@@ -118,13 +120,13 @@ export default function DashboardPage() {
       if (res.ok) {
         const data = await res.json();
         if (data.needsSetup) {
-          window.location.href = "/setup";
+          router.replace("/setup");
         }
       }
     } catch (err) {
       console.error("Setup check error:", err);
     }
-  }, []);
+  }, [router]);
 
   // Initial load
   useEffect(() => {
