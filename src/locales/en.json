@@ -214,7 +214,16 @@
         "presetAppliedSuccess": "Successfully activated preset \"{name}\"",
         "presetApplyError": "Failed to activate preset: {error}",
         "presetSavedSuccess": "Saved new Preset: \"{name}\"",
-        "presetDeletedSuccess": "Deleted Preset: \"{name}\""
+        "presetDeletedSuccess": "Deleted Preset: \"{name}\"",
+        "fanWarnMinLimit": "[WARN] Fan #{index} limited to safe minimum of {minSpeed}%",
+        "sshConnecting": "Connecting SSH to iLO 4: {host}:{port}...",
+        "sshConnected": "SSH connected successfully with user \"{username}\"",
+        "fanInvalidIndex": "[WARN] Skipping invalid fan index: {index}",
+        "sshCmdTimeout": "[ILO-SSH] Fan #{index}: Command \"{cmd}\" sent (continuing...)",
+        "sshCmdError": "[ERROR] Failed to send command \"{cmd}\": {error}",
+        "fanConfigured": "Configured Fan #{index} MAX = {rawVal} (~{speed}%)",
+        "fansCompleted": "Completed controlling {count} fans on iLO server!",
+        "sshError": "[SSH-ERROR] {error}"
       }
     },
     "modal": {

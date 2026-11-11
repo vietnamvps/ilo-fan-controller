@@ -43,7 +43,7 @@ export default async function RootLayout({
           <div className="flex-1 flex flex-col">
             {children}
           </div>
-          <footer className="w-full text-center text-xs text-slate-500 mt-8 pb-6">
+          <footer className="w-full text-center text-xs text-slate-500 py-4">
             iLO 4 Advanced Thermal Management by TuNguyen
           </footer>
         </LanguageProvider>

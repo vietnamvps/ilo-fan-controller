@@ -214,7 +214,16 @@
         "presetAppliedSuccess": "Đã kích hoạt thành công chế độ \"{name}\"",
         "presetApplyError": "Lỗi kích hoạt preset: {error}",
         "presetSavedSuccess": "Đã lưu Preset mới: \"{name}\"",
-        "presetDeletedSuccess": "Đã xóa Preset: \"{name}\""
+        "presetDeletedSuccess": "Đã xóa Preset: \"{name}\"",
+        "fanWarnMinLimit": "[CẢNH BÁO] Giới hạn Quạt #{index} về mức an toàn tối thiểu {minSpeed}%",
+        "sshConnecting": "Đang kết nối SSH tới iLO 4: {host}:{port}...",
+        "sshConnected": "SSH kết nối thành công với tài khoản \"{username}\"",
+        "fanInvalidIndex": "[CẢNH BÁO] Bỏ qua index quạt không hợp lệ: {index}",
+        "sshCmdTimeout": "[ILO-SSH] Quạt #{index}: Lệnh \"{cmd}\" đã gửi (tiếp tục...)",
+        "sshCmdError": "[LỖI] Lỗi gửi lệnh \"{cmd}\": {error}",
+        "fanConfigured": "Đã thiết lập Quạt #{index} MAX = {rawVal} (~{speed}%)",
+        "fansCompleted": "Hoàn tất điều khiển {count} quạt trên máy chủ iLO!",
+        "sshError": "[SSH-LỖI] {error}"
       }
     },
     "modal": {

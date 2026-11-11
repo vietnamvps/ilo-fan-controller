@@ -188,23 +188,34 @@ export async function fetchServerThermal(): Promise<ServerThermalData> {
   }
 }
 
+export type FanLogItem =
+  | string
+  | {
+      key: string;
+      params?: Record<string, string | number>;
+      type?: "info" | "success" | "warn" | "error";
+    };
+
 export interface SetFanResult {
   success: boolean;
   message: string;
-  logs: string[];
+  logs: FanLogItem[];
   fans?: FanStatus[];
 }
 
 export async function setFanSpeeds(fansToUpdate: { index: number; speed: number }[]): Promise<SetFanResult> {
   const config = await getIloConfig();
-  const logs: string[] = [];
-  const timestamp = () => new Date().toLocaleTimeString();
+  const logs: FanLogItem[] = [];
 
   // Validate bounds
   for (const item of fansToUpdate) {
     if (item.speed < config.minFanSpeed) {
       item.speed = config.minFanSpeed;
-      logs.push(`[${timestamp()}] [WARN] Giới hạn quạt #${item.index + 1} về mức an toàn tối thiểu ${config.minFanSpeed}%`);
+      logs.push({
+        key: "dashboard.logs.items.fanWarnMinLimit",
+        params: { index: item.index + 1, minSpeed: config.minFanSpeed },
+        type: "warn",
+      });
     }
     if (item.speed > config.maxFanSpeed) {
       item.speed = config.maxFanSpeed;
@@ -216,7 +227,7 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
     fansToUpdate.forEach(({ index, speed }) => {
       if (index >= 0 && index < mockFanSpeeds.length) {
         mockFanSpeeds[index] = speed;
-        logs.push(`[${timestamp()}] [SSH-MOCK] fan p ${index} max ${Math.ceil((speed / 100) * 255)} -> OK (${speed}%)`);
+        logs.push(`[SSH-MOCK] fan p ${index} max ${Math.ceil((speed / 100) * 255)} -> OK (${speed}%)`);
       }
     });
 
@@ -238,15 +249,27 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
     const conn = new Client();
     let hasError = false;
 
-    logs.push(`[${timestamp()}] Đang kết nối SSH tới iLO 4: ${config.host}:${config.sshPort || 22}...`);
+    logs.push({
+      key: "dashboard.logs.items.sshConnecting",
+      params: { host: config.host, port: config.sshPort || 22 },
+      type: "info",
+    });
 
     conn
       .on("ready", async () => {
-        logs.push(`[${timestamp()}] SSH kết nối thành công với tài khoản "${config.username}".`);
+        logs.push({
+          key: "dashboard.logs.items.sshConnected",
+          params: { username: config.username },
+          type: "success",
+        });
 
         for (const item of fansToUpdate) {
           if (!Number.isInteger(item.index) || item.index < 0 || item.index > 5) {
-            logs.push(`[${timestamp()}] [WARN] Bỏ qua index quạt không hợp lệ: ${item.index}`);
+            logs.push({
+              key: "dashboard.logs.items.fanInvalidIndex",
+              params: { index: item.index },
+              type: "warn",
+            });
             continue;
           }
           // ilo4_unlock (Silence of the Fans) syntax: fan p <bay> max <0-255>
@@ -255,14 +278,22 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
 
           await new Promise<void>((cmdResolve) => {
             const timeoutTimer = setTimeout(() => {
-              logs.push(`[${timestamp()}] [ILO-SSH] Quạt #${item.index + 1}: Lệnh "${cmd}" đã gửi (tiếp tục...)`);
+              logs.push({
+                key: "dashboard.logs.items.sshCmdTimeout",
+                params: { index: item.index + 1, cmd },
+                type: "warn",
+              });
               cmdResolve();
             }, 3000);
 
             conn.exec(cmd, (err, stream) => {
               if (err) {
                 clearTimeout(timeoutTimer);
-                logs.push(`[${timestamp()}] [ERROR] Lỗi gửi lệnh "${cmd}": ${err.message}`);
+                logs.push({
+                  key: "dashboard.logs.items.sshCmdError",
+                  params: { cmd, error: err.message },
+                  type: "error",
+                });
                 cmdResolve();
                 return;
               }
@@ -277,9 +308,13 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
                 clearTimeout(timeoutTimer);
                 const trimmed = output.trim();
                 if (trimmed) {
-                  logs.push(`[${timestamp()}] [ILO-SSH] ${trimmed}`);
+                  logs.push(`[ILO-SSH] ${trimmed}`);
                 }
-                logs.push(`[${timestamp()}] Đã thiết lập Quạt #${item.index + 1} MAX = ${rawVal} (~${item.speed}%)`);
+                logs.push({
+                  key: "dashboard.logs.items.fanConfigured",
+                  params: { index: item.index + 1, rawVal, speed: item.speed },
+                  type: "info",
+                });
                 cmdResolve();
               });
             });
@@ -287,7 +322,11 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
         }
 
         conn.end();
-        logs.push(`[${timestamp()}] Hoàn tất điều khiển ${fansToUpdate.length} quạt trên máy chủ iLO!`);
+        logs.push({
+          key: "dashboard.logs.items.fansCompleted",
+          params: { count: fansToUpdate.length },
+          type: "success",
+        });
 
         // Wait short period then fetch updated fans from iLO Redfish
         setTimeout(async () => {
@@ -302,7 +341,11 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
       })
       .on("error", (err) => {
         hasError = true;
-        logs.push(`[${timestamp()}] [SSH-ERROR] ${err.message}`);
+        logs.push({
+          key: "dashboard.logs.items.sshError",
+          params: { error: err.message },
+          type: "error",
+        });
         resolve({
           success: false,
           message: `Không thể kết nối SSH tới iLO (${config.host}:${config.sshPort}): ${err.message}`,

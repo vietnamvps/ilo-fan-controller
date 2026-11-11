@@ -178,7 +178,23 @@ export default function DashboardPage() {
       }
 
       if (Array.isArray(result.logs)) {
-        result.logs.forEach((msg: string) => addLog(msg, "info"));
+        result.logs.forEach(
+          (
+            item:
+              | string
+              | {
+                  key: string;
+                  params?: Record<string, string | number>;
+                  type?: "info" | "success" | "warn" | "error";
+                }
+          ) => {
+            if (typeof item === "string") {
+              addLog(item, "info");
+            } else if (item && item.key) {
+              addLog({ key: item.key, params: item.params }, item.type || "info");
+            }
+          }
+        );
       }
 
       addLog(
@@ -238,7 +254,23 @@ export default function DashboardPage() {
       }
 
       if (Array.isArray(result.logs)) {
-        result.logs.forEach((msg: string) => addLog(msg, "info"));
+        result.logs.forEach(
+          (
+            item:
+              | string
+              | {
+                  key: string;
+                  params?: Record<string, string | number>;
+                  type?: "info" | "success" | "warn" | "error";
+                }
+          ) => {
+            if (typeof item === "string") {
+              addLog(item, "info");
+            } else if (item && item.key) {
+              addLog({ key: item.key, params: item.params }, item.type || "info");
+            }
+          }
+        );
       }
 
       addLog(
@@ -298,7 +330,23 @@ export default function DashboardPage() {
       }
 
       if (Array.isArray(result.logs)) {
-        result.logs.forEach((msg: string) => addLog(msg, "info"));
+        result.logs.forEach(
+          (
+            item:
+              | string
+              | {
+                  key: string;
+                  params?: Record<string, string | number>;
+                  type?: "info" | "success" | "warn" | "error";
+                }
+          ) => {
+            if (typeof item === "string") {
+              addLog(item, "info");
+            } else if (item && item.key) {
+              addLog({ key: item.key, params: item.params }, item.type || "info");
+            }
+          }
+        );
       }
 
       addLog(
@@ -409,7 +457,7 @@ export default function DashboardPage() {
   );
 
   return (
-    <div className="flex-1 bg-[#080c14] pb-16">
+    <div className="flex-1 bg-[#080c14] pb-6">
       <Header
         isMock={thermalData?.isMock}
         onRefresh={() => fetchThermal(false)}
