@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { hasAdminUser, createAdminUser, saveIloConfig, getIloConfig } from "../../../../lib/storage";
-import { authenticateUser, COOKIE_NAME } from "../../../../lib/auth";
+import { authenticateUser, isSecureCookie, COOKIE_NAME } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,8 +8,11 @@ export async function POST(req: NextRequest) {
   try {
     if (hasAdminUser()) {
       return NextResponse.json(
-        { error: "Hệ thống đã có tài khoản quản trị. Vui lòng đăng nhập bình thường." },
-        { status: 400 }
+        {
+          error: "Forbidden",
+          message: "Hệ thống đã có tài khoản quản trị. Vui lòng đăng nhập bình thường.",
+        },
+        { status: 403 }
       );
     }
 
@@ -28,10 +31,10 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Mật khẩu xác nhận không khớp." }, { status: 400 });
     }
 
-    // Create admin user in SQLite
+    // Create admin user in SQLite atomically
     const result = createAdminUser(username.trim(), password);
     if (!result.success) {
-      return NextResponse.json({ error: result.error || "Không thể tạo tài khoản admin." }, { status: 500 });
+      return NextResponse.json({ error: result.error || "Không thể tạo tài khoản admin." }, { status: 403 });
     }
 
     // Save initial iLO configuration if provided
@@ -57,7 +60,7 @@ export async function POST(req: NextRequest) {
     if (token) {
       response.cookies.set(COOKIE_NAME, token, {
         httpOnly: true,
-        secure: false, // Cho phép hoạt động trên cả HTTP mạng LAN (vd: http://192.168.1.20:3000)
+        secure: isSecureCookie(req),
         sameSite: "lax",
         maxAge: 7 * 24 * 60 * 60, // 7 days
         path: "/",

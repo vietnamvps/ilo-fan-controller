@@ -1,10 +1,16 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getIloConfig, saveIloConfig } from "../../../../lib/storage";
+import { requireAuth } from "../../../../lib/auth";
+import { isValidHost, isValidPort, verifyCsrf } from "../../../../lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
   const config = getIloConfig();
+  // Tuyệt đối không trả về chuỗi mật khẩu iLO ra frontend
   return NextResponse.json({
     host: config.host,
     sshPort: config.sshPort,
@@ -19,9 +25,43 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
+  if (!verifyCsrf(req)) {
+    return NextResponse.json({ error: "Invalid Origin / CSRF Rejected" }, { status: 403 });
+  }
+
   try {
     const current = getIloConfig();
     const body = await req.json();
+
+    if (body.host !== undefined && body.host !== "") {
+      if (!isValidHost(body.host)) {
+        return NextResponse.json(
+          { error: "Địa chỉ IP hoặc Hostname iLO không hợp lệ." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.sshPort !== undefined) {
+      if (!isValidPort(body.sshPort)) {
+        return NextResponse.json(
+          { error: "Cổng SSH không hợp lệ (1 - 65535)." },
+          { status: 400 }
+        );
+      }
+    }
+
+    if (body.httpPort !== undefined) {
+      if (!isValidPort(body.httpPort)) {
+        return NextResponse.json(
+          { error: "Cổng HTTP/HTTPS không hợp lệ (1 - 65535)." },
+          { status: 400 }
+        );
+      }
+    }
 
     const updated = {
       ...current,

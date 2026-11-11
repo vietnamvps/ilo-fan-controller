@@ -23,7 +23,14 @@
     "close": "Đóng",
     "actions": "Thao tác",
     "seconds": "giây",
-    "secondsShort": "s"
+    "secondsShort": "s",
+    "errors": {
+      "unauthorized": "Phiên làm việc hết hạn hoặc chưa đăng nhập. Vui lòng đăng nhập lại.",
+      "forbidden": "Truy cập bị từ chối.",
+      "tooManyRequests": "Quá nhiều yêu cầu. Vui lòng thử lại sau.",
+      "badRequest": "Dữ liệu yêu cầu không hợp lệ.",
+      "csrfError": "Yêu cầu bị từ chối do nguồn gốc không hợp lệ (CSRF)."
+    }
   },
   "header": {
     "brandSubtitle": "iLO 4 Advanced Thermal Management",
@@ -49,7 +56,10 @@
       "compatibleNote": "Tương thích máy chủ HP Gen8 & Gen9 với iLO 4 Patched Firmware (Silence of the Fans)",
       "errorRequired": "Vui lòng nhập tên người dùng và mật khẩu",
       "errorInvalid": "Tên đăng nhập hoặc mật khẩu không chính xác",
-      "errorGeneric": "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản."
+      "errorGeneric": "Đăng nhập thất bại. Vui lòng kiểm tra lại tài khoản.",
+      "rateLimited": "Quá nhiều lần đăng nhập thất bại. Thử lại sau {seconds} giây.",
+      "remainingAttempts": "Tên đăng nhập hoặc mật khẩu không chính xác. Còn lại {count} lần thử.",
+      "locked": "Tài khoản bị tạm khóa do nhập sai quá 5 lần. Thử lại sau {seconds} giây."
     },
     "setup": {
       "brandBadge": "Thiết lập Ban đầu (First-Time Setup)",

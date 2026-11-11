@@ -4,6 +4,7 @@ import Database from "better-sqlite3";
 import bcrypt from "bcryptjs";
 import crypto from "crypto";
 import { AuthConfig, IloConfig, FanPreset } from "@/types";
+import { encryptPassword, decryptPassword } from "./crypto";
 
 const DATA_DIR = path.join(process.cwd(), "data");
 const DB_PATH = path.join(DATA_DIR, "app.db");
@@ -140,26 +141,30 @@ export function getAdminUser(): { id: number; username: string; password_hash: s
 
 export function createAdminUser(username: string, password: string): { success: boolean; error?: string } {
   const db = getDb();
-  if (hasAdminUser()) {
-    return { success: false, error: "Tài khoản quản trị đã tồn tại trên hệ thống!" };
-  }
+  const tx = db.transaction(() => {
+    const row = db.prepare("SELECT COUNT(*) as count FROM users").get() as { count: number };
+    if (row.count > 0) {
+      throw new Error("Tài khoản quản trị đã tồn tại trên hệ thống!");
+    }
 
-  const cleanUsername = username.trim();
-  if (!cleanUsername || cleanUsername.length < 3) {
-    return { success: false, error: "Tên tài khoản phải có ít nhất 3 ký tự!" };
-  }
-  if (!password || password.length < 6) {
-    return { success: false, error: "Mật khẩu phải có ít nhất 6 ký tự!" };
-  }
+    const cleanUsername = username.trim();
+    if (!cleanUsername || cleanUsername.length < 3) {
+      throw new Error("Tên tài khoản phải có ít nhất 3 ký tự!");
+    }
+    if (!password || password.length < 6) {
+      throw new Error("Mật khẩu phải có ít nhất 6 ký tự!");
+    }
 
-  const salt = bcrypt.genSaltSync(10);
-  const passwordHash = bcrypt.hashSync(password, salt);
-
-  try {
+    const salt = bcrypt.genSaltSync(10);
+    const passwordHash = bcrypt.hashSync(password, salt);
     db.prepare("INSERT INTO users (username, password_hash) VALUES (?, ?)").run(cleanUsername, passwordHash);
     return { success: true };
-  } catch (err) {
-    return { success: false, error: "Lỗi tạo tài khoản: " + (err instanceof Error ? err.message : String(err)) };
+  });
+
+  try {
+    return tx();
+  } catch (err: unknown) {
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
   }
 }
 
@@ -180,18 +185,25 @@ export function updateAdminPassword(newPassword: string, newUsername?: string): 
   }
 }
 
+export function getJwtSecret(): string {
+  const db = getDb();
+  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("jwt_secret") as { value: string } | undefined;
+  if (row?.value && row.value.length >= 32) {
+    return row.value;
+  }
+  const newSecret = crypto.randomBytes(32).toString("hex");
+  db.prepare("INSERT OR REPLACE INTO settings (key, value) VALUES (?, ?)").run("jwt_secret", newSecret);
+  return newSecret;
+}
+
 export function getAuthConfig(): AuthConfig | null {
   const user = getAdminUser();
   if (!user) return null;
 
-  const db = getDb();
-  const row = db.prepare("SELECT value FROM settings WHERE key = ?").get("jwt_secret") as { value: string } | undefined;
-  const jwtSecret = row?.value || "default_fallback_secret_key_change_me";
-
   return {
     username: user.username,
     passwordHash: user.password_hash,
-    jwtSecret,
+    jwtSecret: getJwtSecret(),
   };
 }
 
@@ -213,7 +225,16 @@ export function getIloConfig(): IloConfig {
   const sshPort = Number(getSetting("ilo_ssh_port", String(process.env.ILO_SSH_PORT || "22"))) || 22;
   const httpPort = Number(getSetting("ilo_http_port", String(process.env.ILO_HTTP_PORT || "443"))) || 443;
   const username = getSetting("ilo_username", process.env.ILO_USERNAME || "Administrator");
-  const password = getSetting("ilo_password", process.env.ILO_PASSWORD || "");
+  
+  const rawSavedPassword = getSetting("ilo_password", process.env.ILO_PASSWORD || "");
+  const { decrypted: password, wasPlaintext } = decryptPassword(rawSavedPassword);
+
+  // Tự động migrate mật khẩu plaintext cũ sang AES-256-GCM
+  if (wasPlaintext && rawSavedPassword) {
+    const encrypted = encryptPassword(rawSavedPassword);
+    setSetting("ilo_password", encrypted);
+  }
+
   const minFanSpeed = Number(getSetting("min_fan_speed", String(process.env.MINIMUM_FAN_SPEED || "15"))) || 15;
   const maxFanSpeed = Number(getSetting("max_fan_speed", "100")) || 100;
   const mockModeStr = getSetting("mock_mode", "");
@@ -243,7 +264,8 @@ export function saveIloConfig(config: IloConfig): void {
     insertStmt.run("ilo_http_port", String(config.httpPort || 443));
     insertStmt.run("ilo_username", config.username || "Administrator");
     if (config.password !== undefined && config.password !== null) {
-      insertStmt.run("ilo_password", config.password);
+      const encrypted = encryptPassword(config.password);
+      insertStmt.run("ilo_password", encrypted);
     }
     insertStmt.run("min_fan_speed", String(config.minFanSpeed || 15));
     insertStmt.run("max_fan_speed", String(config.maxFanSpeed || 100));

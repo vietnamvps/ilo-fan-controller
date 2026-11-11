@@ -23,7 +23,14 @@
     "close": "Close",
     "actions": "Actions",
     "seconds": "seconds",
-    "secondsShort": "s"
+    "secondsShort": "s",
+    "errors": {
+      "unauthorized": "Session expired or not logged in. Please sign in again.",
+      "forbidden": "Access denied.",
+      "tooManyRequests": "Too many requests. Please try again later.",
+      "badRequest": "Invalid request data.",
+      "csrfError": "Request rejected due to invalid origin (CSRF)."
+    }
   },
   "header": {
     "brandSubtitle": "iLO 4 Advanced Thermal Management",
@@ -49,7 +56,10 @@
       "compatibleNote": "Compatible with HP Gen8 & Gen9 servers running patched iLO 4 firmware (Silence of the Fans)",
       "errorRequired": "Please enter both username and password",
       "errorInvalid": "Invalid username or password",
-      "errorGeneric": "Authentication failed. Please check your credentials."
+      "errorGeneric": "Authentication failed. Please check your credentials.",
+      "rateLimited": "Too many failed login attempts. Please try again in {seconds} seconds.",
+      "remainingAttempts": "Incorrect username or password. {count} attempts remaining.",
+      "locked": "Account temporarily locked due to 5 failed attempts. Please try again in {seconds} seconds."
     },
     "setup": {
       "brandBadge": "First-Time Setup",

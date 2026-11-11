@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getAuthConfig } from "../../../../lib/storage";
-import { updatePassword } from "../../../../lib/auth";
+import { updatePassword, requireAuth } from "../../../../lib/auth";
+import { verifyCsrf } from "../../../../lib/validation";
 import bcrypt from "bcryptjs";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
   const auth = getAuthConfig();
   if (!auth) {
     return NextResponse.json({ error: "Chưa khởi tạo admin" }, { status: 404 });
@@ -16,10 +20,17 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
+  if (!verifyCsrf(req)) {
+    return NextResponse.json({ error: "Invalid Origin / CSRF Rejected" }, { status: 403 });
+  }
+
   try {
     const { currentPassword, newPassword, newUsername } = await req.json();
 
-    if (!newPassword || newPassword.length < 6) {
+    if (!newPassword || typeof newPassword !== "string" || newPassword.length < 6) {
       return NextResponse.json({ error: "Mật khẩu mới phải có ít nhất 6 ký tự" }, { status: 400 });
     }
 

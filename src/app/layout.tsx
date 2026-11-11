@@ -13,7 +13,7 @@ import {
 export const dynamic = "force-dynamic";
 
 export async function generateMetadata(): Promise<Metadata> {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const rawLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value as Locale;
   const locale: Locale = SUPPORTED_LOCALES.includes(rawLocale) ? rawLocale : DEFAULT_LOCALE;
   const { t } = getServerTranslation(locale);
@@ -27,12 +27,12 @@ export async function generateMetadata(): Promise<Metadata> {
   };
 }
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  const cookieStore = cookies();
+  const cookieStore = await cookies();
   const rawLocale = cookieStore.get(LOCALE_COOKIE_NAME)?.value as Locale;
   const locale: Locale = SUPPORTED_LOCALES.includes(rawLocale) ? rawLocale : DEFAULT_LOCALE;
 

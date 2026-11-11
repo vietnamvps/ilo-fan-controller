@@ -10,8 +10,7 @@ let mockCpu2Temp = 44;
 let mockAmbientTemp = 25;
 
 // Cấu hình các thuật toán mã hóa tương thích với chip HP iLO 4
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const ILO_SSH_ALGORITHMS: any = {
+const ILO_SSH_ALGORITHMS: Record<string, string[]> = {
   kex: [
     "diffie-hellman-group14-sha1",
     "diffie-hellman-group-exchange-sha1",
@@ -64,7 +63,8 @@ function httpsGetJson(urlStr: string, authHeader: string, timeoutMs = 8000, redi
             Authorization: authHeader,
             Accept: "application/json",
           },
-          rejectUnauthorized: false, // Bắt buộc cho iLO 4 vì luôn dùng SSL tự ký
+          // Mặc định false do iLO 4 xuất xưởng dùng SSL tự ký; cấu hình true qua env khi có CA nội bộ
+          rejectUnauthorized: process.env.ILO_REJECT_UNAUTHORIZED === "true",
           timeout: timeoutMs,
         },
         (res) => {
@@ -245,6 +245,10 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
         logs.push(`[${timestamp()}] SSH kết nối thành công với tài khoản "${config.username}".`);
 
         for (const item of fansToUpdate) {
+          if (!Number.isInteger(item.index) || item.index < 0 || item.index > 5) {
+            logs.push(`[${timestamp()}] [WARN] Bỏ qua index quạt không hợp lệ: ${item.index}`);
+            continue;
+          }
           // ilo4_unlock (Silence of the Fans) syntax: fan p <bay> max <0-255>
           const rawVal = Math.max(0, Math.min(255, Math.ceil((item.speed / 100) * 255)));
           const cmd = `fan p ${item.index} max ${rawVal}`;

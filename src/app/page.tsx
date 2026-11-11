@@ -129,7 +129,7 @@ export default function DashboardPage() {
   // Initial load
   useEffect(() => {
     checkSetupStatus();
-    fetchThermal();
+    fetchThermal(true);
     fetchPresetsAndConfig();
     addLog({ key: "dashboard.logs.items.systemStarted" }, "info");
   }, [checkSetupStatus, fetchThermal, fetchPresetsAndConfig, addLog]);

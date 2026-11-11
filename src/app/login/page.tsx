@@ -51,7 +51,7 @@ export default function LoginPage() {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.error || t("auth.login.errorGeneric"));
+        throw new Error(data.message || data.error || t("auth.login.errorGeneric"));
       }
 
       window.location.href = "/";

@@ -1,9 +1,13 @@
 import { NextResponse } from "next/server";
 import { fetchServerThermal } from "../../../../lib/ilo";
+import { requireAuth } from "../../../../lib/auth";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
   try {
     const data = await fetchServerThermal();
     return NextResponse.json(data);

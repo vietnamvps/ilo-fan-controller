@@ -1,39 +1,61 @@
 import { NextRequest, NextResponse } from "next/server";
 import { setFanSpeeds } from "../../../../lib/ilo";
-import { getIloConfig } from "../../../../lib/storage";
+import { requireAuth } from "../../../../lib/auth";
+import { isValidFanIndex, isValidFanSpeed, verifyCsrf } from "../../../../lib/validation";
 
 export const dynamic = "force-dynamic";
 
 export async function POST(req: NextRequest) {
+  // 1. Kiểm tra xác thực (Second-layer security defense)
+  const authErr = await requireAuth();
+  if (authErr) return authErr;
+
+  // 2. Kiểm tra CSRF
+  if (!verifyCsrf(req)) {
+    return NextResponse.json({ error: "Invalid Origin / CSRF Rejected" }, { status: 403 });
+  }
+
   try {
     const body = await req.json();
-    const config = await getIloConfig();
-
     let fansToUpdate: { index: number; speed: number }[] = [];
 
     if (typeof body.allSpeed === "number") {
-      // Set all 6 fans of DL380 G9
+      if (!isValidFanSpeed(body.allSpeed)) {
+        return NextResponse.json({ error: "Tốc độ quạt phải là số từ 0 đến 100" }, { status: 400 });
+      }
       for (let i = 0; i < 6; i++) {
         fansToUpdate.push({ index: i, speed: body.allSpeed });
       }
     } else if (Array.isArray(body.fans)) {
-      // Direct array [{ index: 0, speed: 25 }, ...]
-      fansToUpdate = body.fans.map((f: { index: number; speed: number }) => ({
-        index: Number(f.index),
-        speed: Number(f.speed),
-      }));
+      for (const f of body.fans) {
+        const idx = Number(f.index);
+        const spd = Number(f.speed);
+        if (!isValidFanIndex(idx) || !isValidFanSpeed(spd)) {
+          return NextResponse.json(
+            { error: `Tham số quạt không hợp lệ (index: 0..5, speed: 0..100)` },
+            { status: 400 }
+          );
+        }
+        fansToUpdate.push({ index: idx, speed: spd });
+      }
     } else if (typeof body.fans === "object" && body.fans !== null) {
-      // Legacy dictionary format: { "Fan 1": 20, "Fan 2": 30 }
       const keys = Object.keys(body.fans);
-      fansToUpdate = keys.map((key) => {
+      for (const key of keys) {
         const match = key.match(/\d+/);
         const idx = match ? parseInt(match[0], 10) - 1 : 0;
-        return {
-          index: idx,
-          speed: Number(body.fans[key]),
-        };
-      });
+        const spd = Number(body.fans[key]);
+        if (!isValidFanIndex(idx) || !isValidFanSpeed(spd)) {
+          return NextResponse.json(
+            { error: `Tham số quạt không hợp lệ (index: 0..5, speed: 0..100)` },
+            { status: 400 }
+          );
+        }
+        fansToUpdate.push({ index: idx, speed: spd });
+      }
     } else if (typeof body.fans === "number") {
+      if (!isValidFanSpeed(body.fans)) {
+        return NextResponse.json({ error: "Tốc độ quạt phải là số từ 0 đến 100" }, { status: 400 });
+      }
       for (let i = 0; i < 6; i++) {
         fansToUpdate.push({ index: i, speed: body.fans });
       }

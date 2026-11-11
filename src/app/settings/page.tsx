@@ -61,12 +61,6 @@ export default function SettingsPage() {
   const [authSuccess, setAuthSuccess] = useState<string | null>(null);
   const [authError, setAuthError] = useState<string | null>(null);
 
-  // Load current config
-  useEffect(() => {
-    fetchConfig();
-    fetchUser();
-  }, []);
-
   const fetchConfig = async () => {
     try {
       setConfigLoading(true);
@@ -94,6 +88,12 @@ export default function SettingsPage() {
       console.error("Failed to load user:", err);
     }
   };
+
+  // Load current config
+  useEffect(() => {
+    fetchConfig();
+    fetchUser();
+  }, []);
 
   const handleSaveConfig = async (e: React.FormEvent) => {
     e.preventDefault();
