@@ -2,84 +2,81 @@
 
 [🇻🇳 Xem bản Tiếng Việt](README.vi.md) | [🇬🇧 English Version](README.md)
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16%20LTS-black?logo=next.js)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%20LTS-green?logo=node.js)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-Ứng dụng web hiện đại, tối ưu giao diện tối (Dark Mode) và hỗ trợ co giãn hoàn hảo trên di động, chuyên dụng để **điều khiển tốc độ quạt và giám sát nhiệt độ máy chủ HPE ProLiant DL380 Gen9 (và Gen8)** chạy firmware **iLO 4 đã mở khóa (Fan Hack)** qua SSH và Redfish REST API.
+Ứng dụng web hiện đại, tối ưu cho dòng máy chủ **HPE ProLiant DL380 Gen9 (và Gen8)** sử dụng firmware **iLO 4** đã mở khóa (patched). Cung cấp khả năng điều khiển chi tiết tốc độ từng cụm quạt qua giao thức SSH và giám sát thông số nhiệt độ phần cứng thời gian thực thông qua Redfish REST API.
 
 ---
 
-## 📸 Hình Ảnh Giao Diện Thực Tế
+## 📸 Hình ảnh Giao diện Thực tế
 
-| Tổng Quan Dashboard & Điều Khiển Master | Sơ Đồ 6 Cụm Quạt Chassis |
+| Tổng quan Dashboard & Thanh Đồng bộ | Bảng Điều khiển 6 Quạt Khung máy |
 |:---:|:---:|
-| ![Tổng quan Dashboard](docs/images/dashboard-overview.jpg) | ![Sơ đồ 6 Quạt Chassis](docs/images/fan-modules.jpg) |
+| ![Dashboard Overview](docs/images/dashboard-overview.jpg) | ![6-Fan Modules](docs/images/fan-modules.jpg) |
 
-| 44 Cảm Biến Nhiệt Độ Redfish Thời Gian Thực | Nhật Ký Lệnh SSH Terminal & Cảm Biến Khu Vực |
+| Cảm biến Nhiệt độ Redfish (44 Sensors) | Nhật ký Lệnh SSH & Telemetry |
 |:---:|:---:|
-| ![Cảm biến nhiệt độ](docs/images/thermal-sensors-1.jpg) | ![Nhật ký lệnh Terminal](docs/images/thermal-sensors-2-logs.png) |
+| ![Thermal Sensors](docs/images/thermal-sensors-1.jpg) | ![Terminal Logs](docs/images/thermal-sensors-2-logs.png) |
 
-| Trang Cấu Hình Hệ Thống & Kết Nối iLO 4 |
+| Cấu hình Kết nối iLO 4 & Tài khoản |
 |:---:|
-| ![Cấu hình hệ thống](docs/images/settings-page.jpg) |
+| ![System Settings](docs/images/settings-page.jpg) |
 
 ---
 
-## ✨ Tính Năng Nổi Bật
+## ✨ Tính năng Nổi bật
 
-- **Tích Hợp Giao Thức Kép (Dual-Protocol):**
-  - **SSH (Fan Hack):** Gửi trực tiếp lệnh PWM (`fan p <bay_id> max <0-255>`) để kiểm soát tốc độ từng quạt riêng lẻ.
-  - **Redfish REST API:** Thu thập thông số nhiệt độ thời gian thực (CPU 1, CPU 2, Nhiệt độ phòng máy / Inlet Ambient, Bộ nhớ RAM, Khe cắm PCIe...).
-- **Khắc Phục Hoàn Toàn Lỗi Bắt Tay SSH Cũ (Legacy Ciphers):**
-  - Tích hợp sẵn bộ thuật toán trao đổi khóa và mã hóa legacy của iLO 4 (`diffie-hellman-group14-sha1`, `diffie-hellman-group1-sha1`, `ssh-rsa`, `aes128-cbc`, `3des-cbc`), giải quyết triệt để lỗi `Handshake failed: no matching key exchange algorithm`.
-- **Hỗ Trợ Đa Ngôn Ngữ Song Ngữ (i18n Anh - Việt):**
-  - Chuyển đổi mượt mà giữa **Tiếng Việt (VI)** và **Tiếng Anh (EN)**.
-  - Đọc cookie ngay tại Server Component (`layout.tsx`), loại bỏ hoàn toàn hiện tượng nháy ngôn ngữ (Hydration mismatch).
-  - Khung nhật ký Terminal tự động dịch đổi ngôn ngữ theo thời gian thực cho toàn bộ log cũ và mới.
-- **Bảng Điều Khiển 6 Quạt Chassis DL380 Gen9:**
-  - Điều chỉnh từng quạt với thanh trượt mượt mà kèm hiệu ứng đồ họa cánh quạt quay theo tốc độ thực.
-  - **Thanh trượt Master Sync:** Đồng bộ cả 6 quạt cùng lúc với cơ chế phát lệnh SSH tuần tự (sequential pulse), chống sốc dòng điện khởi động trên nguồn máy chủ 500W/800W.
-- **Hồ Sơ Làm Mát Cài Đặt Sẵn (Fan Presets):**
-  - **Preset hệ thống:** Ultra Quiet / Êm ái (15%), Balanced / Cân bằng (30%), Performance / Tải nặng (60%), Turbine Boost (100%).
-  - **Preset tùy chỉnh:** Người dùng tự tạo, đặt tên, ghi chú và xóa hồ sơ theo nhu cầu thực tế.
-- **Cơ Chế Khóa An Toàn Ngưỡng Tối Thiểu:**
-  - Thiết lập ngưỡng tốc độ an toàn (mặc định 15% - 20%), ngăn chặn người dùng vô tình kéo quạt xuống mức quá thấp gây quá nhiệt linh kiện.
-- **Khung Nhật Ký Lệnh Trực Tiếp (Action Terminal):**
-  - Theo dõi chi tiết từng dòng lệnh gửi tới SSH iLO và kết quả phản hồi của phần cứng.
-- **Chế Độ Giả Lập (Mock Simulation):**
-  - Chế độ demo cho phép dùng thử giao diện khi máy chủ thật đang tắt nguồn hoặc bảo trì.
-- **Giao Diện Di Động Hoàn Hảo (< 640px):**
-  - Tối ưu kích thước trên màn hình điện thoại (360px, 390px, 768px, 1280px), không bao giờ bị tràn hay xuất hiện thanh cuộn ngang.
-- **Lưu Trữ Tự Động Bằng SQLite:**
-  - Lưu trữ tài khoản, mật khẩu mã hóa và cấu hình trong tệp `/app/data/app.db`. Không cần cài đặt MySQL hay PostgreSQL bên ngoài.
+- **Tích hợp Phần cứng Giao thức Kép:**
+  - **SSH (Fan Hack):** Gửi trực tiếp lệnh PWM thô (`fan p <bay_id> max <0-255>`) tới từng quạt.
+  - **Redfish REST API:** Đọc cảm biến nhiệt độ theo thời gian thực (CPU, Khí nạp/Inlet, RAM, Khe cắm PCIe, v.v.).
+- **Tương thích Thuật toán Mã hóa Cũ của iLO 4:**
+  - Hỗ trợ đầy đủ các bộ trao đổi khóa cũ (`diffie-hellman-group14-sha1`, `diffie-hellman-group1-sha1`), cipher (`aes128-cbc`, `3des-cbc`) và host key (`ssh-rsa`), khắc phục triệt để lỗi bắt tay SSH trên iLO 4.
+- **Đa ngôn ngữ Song ngữ Anh - Việt (i18n):**
+  - Chuyển đổi mượt mà giữa **Tiếng Việt (VI)** và **Tiếng Anh (EN)**, đọc ngôn ngữ từ server cookie tránh nháy trang (zero hydration flash).
+- **Điều khiển 6 Quạt Linh hoạt:**
+  - Thanh trượt điều chỉnh tốc độ từng quạt kèm hoạt họa cánh quạt quay đồng bộ theo tốc độ thực tế.
+  - **Thanh trượt Master Sync:** Đồng bộ cả 6 quạt cùng lúc, phát lệnh tuần tự qua SSH để chống sụt áp nguồn (inrush current).
+- **Hồ sơ Làm mát (Presets):**
+  - **Cấu hình có sẵn:** Siêu êm (Silent 15%), Cân bằng (30%), Hiệu năng cao (60%), Phản lực cất cánh (Turbine 100%).
+  - **Tùy chỉnh cá nhân:** Tạo, lưu và xóa preset quạt trực tiếp trên giao diện.
+- **Giới hạn An toàn Phần cứng:**
+  - Cho phép cấu hình ngưỡng quạt tối thiểu an toàn (khuyến nghị 15% - 20%) ngăn ngừa quá nhiệt.
+- **Khung Nhật ký Trực quan:**
+  - Hiển thị phản hồi thực tế từ SSH và Redfish theo thời gian thực.
+- **Chế độ Giả lập (Mock Simulation Mode):**
+  - Cho phép thử nghiệm toàn bộ giao diện và thao tác mà không cần kết nối tới máy chủ thật.
+- **Giao diện Tối (Dark Mode) Responsive:**
+  - Tối ưu hiển thị hoàn hảo trên máy tính để bàn, máy tính bảng và điện thoại di động (< 640px).
+- **Lưu trữ Cục bộ Không cần Cấu hình:**
+  - Sử dụng SQLite nhúng lưu tại `/app/data/app.db`. Không cần cài thêm bất kỳ cơ sở dữ liệu ngoài nào.
 
 ---
 
-## 🛠️ Yêu Cầu Hệ Thống
+## 🛠️ Yêu cầu Hệ thống
 
 1. **Phần cứng:**
-   - Máy chủ HPE ProLiant DL380 Gen9 (hoặc các dòng Gen8 tương thích) có cổng mạng iLO 4 chuyên dụng.
+   - Máy chủ HPE ProLiant DL380 Gen9 (hoặc dòng Gen8 tương thích) có cổng quản trị iLO 4.
 2. **Firmware:**
-   - Firmware iLO 4 đã được cài đặt bản vá mở khóa quạt (ví dụ: [kendallgoto/ilo4_unlock](https://github.com/kendallgoto/ilo4_unlock) v2.77 Fan Hack).
-3. **Phần mềm:**
-   - [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/).
+   - Đã cài bản vá mở khóa quạt iLO 4 (ví dụ: [kendallgoto/ilo4_unlock](https://github.com/kendallgoto/ilo4_unlock) v2.77 Fan Hack).
+3. **Môi trường:**
+   - [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) (Node.js 22+ & pnpm nếu biên dịch từ nguồn).
 
 ---
 
-## 🚀 Triển Khai Nhanh Bằng Docker
+## 🚀 Triển khai Nhanh với Docker
 
-Bạn **không cần** ghi mật khẩu hoặc IP máy chủ vào file compose. Toàn bộ thông tin sẽ được cấu hình trực quan qua giao diện web lần đầu khởi chạy và lưu vào thư mục `./data`.
+Bạn **không cần** phải lộ mật khẩu hay địa chỉ IP vào file compose. Toàn bộ thông tin được cấu hình trực quan qua giao diện web lần đầu khởi chạy và lưu vào thư mục `./data`.
 
-### 1. Sử dụng Docker Compose (Khuyên Dùng)
+### 1. Sử dụng Docker Compose (Khuyến nghị)
 
 Tạo file `docker-compose.yml`:
 
 ```yaml
-version: "3.8"
-
 services:
   ilo-fan-controller:
     image: ghcr.io/vietnamvps/ilo-fan-controller:latest
@@ -91,7 +88,13 @@ services:
       - ./data:/app/data
 ```
 
-Khởi chạy container:
+> **Lưu ý phân quyền thư mục trên Linux Host:**  
+> Container chạy bằng người dùng không đặc quyền `node` (`uid: 1000`, `gid: 1000`). Nếu mount thư mục trên Linux, hãy chạy lệnh sau trên máy host để cấp quyền ghi cho SQLite:  
+> ```bash
+> mkdir -p ./data && chown -R 1000:1000 ./data
+> ```
+
+Khởi động ứng dụng:
 
 ```bash
 docker compose up -d
@@ -110,104 +113,72 @@ docker run -d \
 
 ---
 
-## 🧭 Hướng Dẫn Sử Dụng Lần Đầu
+## 🧭 Hướng dẫn Cài đặt Lần đầu
 
 1. Mở trình duyệt và truy cập:
    ```text
-   http://<IP-MÁY-CHỦ-CỦA-BẠN>:3000
+   http://<IP_MÁY_CHỦ>:3000
    ```
-2. **Trang Khởi Tạo Hệ Thống Lần Đầu (`/setup`):**
-   - Tạo tài khoản Quản trị viên Web (Tên đăng nhập & Mật khẩu).
-   - Nhập thông số iLO 4 (Địa chỉ IP Dedicated iLO, Cổng SSH 22, Tài khoản & Mật khẩu quản trị iLO).
-   - Bấm **Hoàn tất cài đặt & Vào Dashboard**.
-3. **Kiểm Tra & Lưu Cấu Hình (`/settings`):**
-   - Bấm nút **Test Kết nối iLO** để kiểm tra đồng thời Redfish REST API (443) và SSH Fan Hack (22).
-   - Nếu đang bật Chế độ Mô phỏng (Mock Mode), gạt tắt nút để bắt đầu điều khiển phần cứng thật.
+2. **Thiết lập Quản trị (`/setup`):**
+   - Tạo tài khoản quản trị (Tên đăng nhập & Mật khẩu).
+   - Nhập thông tin kết nối iLO 4 (Địa chỉ IP cổng iLO, cổng SSH 22, tài khoản và mật khẩu iLO).
+   - Bấm **Hoàn tất Thiết lập & Vào Bảng Điều Khiển**.
+3. **Cài đặt & Kiểm tra (`/settings`):**
+   - Bấm **Test Kết nối iLO** để kiểm tra đồng thời Redfish REST API (443) và SSH Fan Hack (22).
+   - Nếu đang ở chế độ Giả lập (Mock Mode), gạt tắt sau khi test thành công.
 
 ---
 
-## ⚙️ Cơ Chế Điều Khiển Quạt iLO 4
+## ⚙️ Biến Môi trường Tùy chọn (Environment Variables)
 
-Trên firmware iLO 4 Fan Hack, các lệnh điều khiển quạt được thực thi trực tiếp qua phiên SSH:
-
-```bash
-fan p <bay_id> max <pwm_value>
-```
-
-- **Bay ID:** Từ `0` đến `5` tương ứng với Quạt 1 đến Quạt 6 trên cụm quạt máy chủ DL380 Gen9.
-- **Giá trị PWM:** Từ `0` (dừng) đến `255` (100% công suất quạt).
-  - `15%` ≈ PWM `38` (Vô cùng êm ái, thích hợp phòng ngủ / văn phòng)
-  - `30%` ≈ PWM `76` (Cân bằng nhiệt độ và âm lượng)
-  - `60%` ≈ PWM `153` (Làm mát mạnh khi render, máy ảo tải cao)
-  - `100%` = PWM `255` (Turbine tối đa công suất)
-
-> **Lưu ý khi lắp Card PCIe rời:** Khi cắm card PCIe bên thứ ba (GPU NVIDIA, Card mạng quang 10GbE SFP+...), iLO 4 mặc định sẽ hú còi quạt ở mức 60% - 100% vì lo ngại quá nhiệt. Ứng dụng này sẽ ghi đè và cố định mức quạt theo ý muốn của bạn mà không bị tự ý tăng tốc.
+| Tên biến | Mặc định | Mô tả |
+| :--- | :---: | :--- |
+| `PORT` | `3000` | Cổng lắng nghe HTTP của giao diện web. |
+| `ILO_ENCRYPTION_KEY` | *(Tự sinh)* | Chuỗi hex 32-byte dùng mã hóa AES-256-GCM cho mật khẩu iLO. Nếu để trống, key tự sinh và lưu vào `data/.secret_key`. |
+| `ILO_REJECT_UNAUTHORIZED` | `false` | Đặt `true` nếu muốn bắt buộc kiểm tra chứng chỉ SSL iLO 4 (giữ `false` cho chứng chỉ tự ký mặc định của iLO). |
+| `COOKIE_SECURE` | `auto` | Cờ bảo mật cookie HTTPS: `auto` (tự nhận diện qua HTTPS / proxy headers), `true` (ép cookie HTTPS), `false` (cho phép HTTP mạng nội bộ LAN). |
+| `TRUST_PROXY` | `false` | Bật `true` **CHỈ KHI** triển khai sau một Reverse Proxy đáng tin cậy (Nginx, Caddy, Cloudflare Tunnel). **Cảnh báo bảo mật:** Tuyệt đối không bật `TRUST_PROXY` nếu ứng dụng mở trực tiếp cho client mà không qua reverse proxy, vì kẻ xấu có thể làm giả header `X-Forwarded-For` và `X-Forwarded-Host`. |
 
 ---
 
-## 📦 Biên Dịch Từ Mã Nguồn (Build from Source)
+## 🔒 Kiến trúc Bảo mật
 
-```bash
-# Tải mã nguồn về máy
-git clone https://github.com/vietnamvps/ilo-fan-controller.git
-cd ilo-fan-controller
-
-# Đóng gói và chạy bằng Docker Compose
-docker compose build --no-cache
-docker compose up -d
-```
-
-### Chạy Môi Trường Phát Triển (Local Dev)
-
-```bash
-# Cài đặt thư viện
-npm install
-
-# Khởi chạy server phát triển
-npm run dev
-
-# Kiểm tra cú pháp TypeScript
-npx tsc --noEmit
-
-# Đối soát bộ từ khóa đa ngôn ngữ
-node scripts/check-i18n.js
-```
+- **Xác thực Đa tầng:** Bảo vệ 2 lớp kết hợp giữa `proxy.ts` và helper `requireAuth()` ở đầu mọi API quản trị. Token phiên làm việc dùng JWT ký bằng thuật toán HS256 với secret ngẫu nhiên bảo mật.
+- **Chống Dò quét Mật khẩu (Rate Limiting):** Khóa tạm thời 15 phút sau 5 lần đăng nhập thất bại theo địa chỉ IP và tài khoản, trả về mã lỗi HTTP 429 (`Retry-After`).
+- **Mã hóa Mật khẩu iLO Chuẩn AES-256-GCM:** Mật khẩu iLO được mã hóa trước khi lưu vào SQLite. Mật khẩu không bao giờ được gửi trả về frontend.
+  - *Vị trí khóa & Hạn chế cần lưu ý:* Khóa mã hóa lưu tại `data/.secret_key` (quyền hạn `0600`). **Hạn chế quan trọng:** Nếu bạn sao lưu (backup) toàn bộ thư mục `./data`, bản sao lưu sẽ chứa cả database (`app.db`) lẫn khóa bí mật (`.secret_key`), dẫn đến việc ai có bản backup đều có thể giải mã được mật khẩu. Trong môi trường yêu cầu bảo mật cao, hãy truyền `ILO_ENCRYPTION_KEY` từ biến môi trường bên ngoài thay vì dùng file key cục bộ.
+- **Xác thực Tham số Nghiêm ngặt:** Giới hạn index quạt trong tập số nguyên `0..5`, tốc độ `0..100` và IP/hostname hợp lệ nhằm ngăn chặn hoàn toàn nguy cơ chèn mã độc vào SSH.
+- **Bảo vệ CSRF:** Kiểm tra `Origin` và `Host` (hoặc `X-Forwarded-Host` khi bật `TRUST_PROXY`) trên toàn bộ các request thay đổi dữ liệu (POST, PUT, PATCH, DELETE).
+- **Phân quyền Non-Root Linux:** Container chạy dưới user `node` (`uid: 1000`, `gid: 1000`). Chạy lệnh `mkdir -p ./data && chown -R 1000:1000 ./data` trên máy host để cấp quyền ghi cho SQLite.
+- **Khuyến cáo Triển khai:** Chỉ nên chạy dịch vụ trong mạng LAN/VLAN quản trị riêng. Nếu mở ra Internet, bắt buộc đặt sau Reverse Proxy có HTTPS và bảo vệ xác thực đa yếu tố (MFA).
 
 ---
 
-## 🗂️ Cấu Trúc Thư Mục Dự Án
+## ⚠️ Cảnh Báo An Toàn Phần Cứng & Miễn Trừ Trách Nhiệm
 
-```text
-├── src/
-│   ├── app/
-│   │   ├── api/             # API Routes (auth, fans, presets, thermal, config)
-│   │   ├── login/           # Giao diện Đăng nhập quản trị
-│   │   ├── setup/           # Trình khởi tạo hệ thống lần đầu
-│   │   ├── settings/        # Cấu hình iLO 4 & Đổi mật khẩu
-│   │   ├── layout.tsx       # Root layout đọc cookie ngôn ngữ phía server
-│   │   └── page.tsx         # Bảng điều khiển Quạt & Nhiệt độ thời gian thực
-│   ├── components/          # Components tái sử dụng (FanCard, Header, ThermalGrid...)
-│   ├── contexts/            # LanguageContext (Quản lý đa ngôn ngữ VI/EN)
-│   ├── lib/                 # Module SSH/Redfish (ilo.ts), SQLite (db.ts), i18n core
-│   ├── locales/             # File từ điển vi.json & en.json
-│   └── types/               # TypeScript interfaces & types
-├── scripts/
-│   └── check-i18n.js        # Script tự động kiểm tra đối soát key parity
-├── Dockerfile               # Đóng gói Docker multi-stage standalone
-└── docker-compose.yml       # File chạy Docker compose mẫu
-```
+> [!WARNING]
+> **VUI LÒNG ĐỌC KỸ TRƯỚC KHI SỬ DỤNG:**  
+> Việc can thiệp giảm tốc độ quạt của máy chủ xuống thấp hơn mức thiết kế mặc định của nhà sản xuất hoặc nạp firmware mod bên thứ ba có thể gây quá nhiệt linh kiện, tụt hiệu năng (thermal throttling), giảm tuổi thọ phần cứng hoặc gây hỏng hóc vật lý nếu cấu hình không đúng cách.  
+> Ứng dụng này được cung cấp "nguyên trạng" (as is) và hoàn toàn không có bảo hành. Bạn hoàn toàn tự chịu trách nhiệm về an toàn thiết bị và giám sát nhiệt độ của hệ thống. Tác giả và những người đóng góp không chịu bất kỳ trách nhiệm pháp lý nào đối với hỏng hóc phần cứng, mất mát dữ liệu hoặc việc bị từ chối bảo hành từ nhà sản xuất.
 
 ---
 
-## 🔒 Bảo Mật & Quyền Riêng Tư
+## ⚖️ Tuyên Bố Về Nhãn Hiệu
 
-- Mật khẩu đăng nhập được mã hóa muối bằng thuật toán bcrypt an toàn.
-- Thông tin đăng nhập iLO được lưu trữ an toàn trong SQLite cục bộ (`/app/data/app.db`).
-- Phiên đăng nhập được quản lý bằng `httpOnly` cookie bảo mật.
-- 100% chạy trên mạng nội bộ cục bộ, không gửi dữ liệu ra bên ngoài.
+> [!NOTE]
+> **HPE, ProLiant, và iLO** là các nhãn hiệu đã được đăng ký của **Hewlett Packard Enterprise Company**.  
+> Dự án này là công cụ nguồn mở độc lập do cộng đồng phát triển và **không liên kết, không được chứng thực, không được tài trợ bởi Hewlett Packard Enterprise Company**.
 
 ---
 
-## 📄 Giấy Phép (License)
+## 🤝 Lời Cảm Ơn & Ghi Công (Credits)
 
-Dự án được phân phối mã nguồn mở theo giấy phép [MIT License](LICENSE).
+- Đặc biệt cảm ơn tác giả **Kendall Goto** với dự án nghiên cứu firmware mã nguồn mở: [`kendallgoto/ilo4_unlock`](https://github.com/kendallgoto/ilo4_unlock).
+- Cảm ơn cộng đồng home lab và các thành viên sáng kiến *"Silence of the Fans"* đã chia sẻ các tài liệu về tập lệnh CLI iLO 4.
+
+---
+
+## 📄 Giấy phép Bản quyền
+
+Dự án phát hành theo giấy phép mã nguồn mở [MIT License](LICENSE).  
+Xem danh sách bản quyền của các thư viện bên thứ ba tại [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md).

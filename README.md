@@ -2,7 +2,8 @@
 
 [🇻🇳 Xem bản Tiếng Việt](README.vi.md) | [🇬🇧 English Version](README.md)
 
-[![Next.js](https://img.shields.io/badge/Next.js-14-black?logo=next.js)](https://nextjs.org/)
+[![Next.js](https://img.shields.io/badge/Next.js-16%20LTS-black?logo=next.js)](https://nextjs.org/)
+[![Node.js](https://img.shields.io/badge/Node.js-22%20LTS-green?logo=node.js)](https://nodejs.org/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.7-blue?logo=typescript)](https://www.typescriptlang.org/)
 [![TailwindCSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC?logo=tailwind-css)](https://tailwindcss.com/)
 [![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker)](https://www.docker.com/)
@@ -34,13 +35,12 @@ A modern, responsive web application designed for **HPE ProLiant DL380 Gen9 (and
   - **SSH (Fan Hack):** Sends raw PWM commands (`fan p <bay_id> max <0-255>`) to control individual fan bays directly.
   - **Redfish REST API:** Telemetry polling for real-time temperatures (CPUs, Ambient/Inlet, Memory, PCIe slots, etc.).
 - **Legacy SSH Ciphers & Handshake Compatibility:**
-  - Built-in support for iLO 4 legacy key exchange (`diffie-hellman-group14-sha1`, `diffie-hellman-group1-sha1`), ciphers (`aes128-cbc`, `3des-cbc`), and host keys (`ssh-rsa`), completely resolving connection handshake errors.
+  - Built-in support for iLO 4 legacy key exchange (`diffie-hellman-group14-sha1`, `diffie-hellman-group1-sha1`), ciphers (`aes128-cbc`, `3des-cbc`), and host keys (`ssh-rsa`), resolving connection handshake errors.
 - **Bilingual Interface (i18n):**
-  - Instant switching between **English (EN)** and **Tiếng Việt (VI)**.
-  - Zero hydration flash (server-side cookie reading).
+  - Instant switching between **English (EN)** and **Tiếng Việt (VI)** with zero hydration flash.
   - Dynamically translated action logs.
 - **Chassis 6-Fan Control:**
-  - Individual fan sliders with immediate preview and real-time spinning tachometer animation.
+  - Individual fan sliders with immediate preview and spinning tachometer animation.
   - **Master Sync Slider:** Set all 6 fans simultaneously with sequential SSH dispatch to prevent inrush current surges on power supplies.
 - **Cooling Profiles (Presets):**
   - **Built-in Presets:** Ultra Quiet (Silent 15%), Balanced (30%), Performance (60%), Turbine Boost (100%).
@@ -65,7 +65,7 @@ A modern, responsive web application designed for **HPE ProLiant DL380 Gen9 (and
 2. **Firmware:**
    - Patched iLO 4 firmware unlocking fan speed commands (e.g., [kendallgoto/ilo4_unlock](https://github.com/kendallgoto/ilo4_unlock) v2.77 Fan Hack).
 3. **Software:**
-   - [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/).
+   - [Docker](https://docs.docker.com/get-docker/) & [Docker Compose](https://docs.docker.com/compose/install/) (Node.js 22+ & pnpm if building from source).
 
 ---
 
@@ -78,8 +78,6 @@ You **do not** need to expose passwords or IPs in your compose file. Everything 
 Create `docker-compose.yml`:
 
 ```yaml
-version: "3.8"
-
 services:
   ilo-fan-controller:
     image: ghcr.io/vietnamvps/ilo-fan-controller:latest
@@ -90,6 +88,12 @@ services:
     volumes:
       - ./data:/app/data
 ```
+
+> **Note for Linux Host File Permissions:**  
+> The container runs as non-root user `node` (`uid: 1000`, `gid: 1000`). If mounting a local directory on Linux, ensure the host directory is writable:  
+> ```bash
+> mkdir -p ./data && chown -R 1000:1000 ./data
+> ```
 
 Start the container:
 
@@ -126,88 +130,56 @@ docker run -d \
 
 ---
 
-## ⚙️ Fan Control Mechanics
+## ⚙️ Environment Variables (Optional)
 
-On patched iLO 4 firmware, fan control commands are dispatched via SSH:
-
-```bash
-fan p <bay_id> max <pwm_value>
-```
-
-- **Bay ID:** `0` to `5` corresponding to Fan 1 through Fan 6 in the DL380 Gen9 chassis.
-- **PWM Value:** `0` (stopped) to `255` (100% duty cycle).
-  - `15%` ≈ PWM `38`
-  - `30%` ≈ PWM `76`
-  - `60%` ≈ PWM `153`
-  - `100%` = PWM `255`
-
-> **Note on PCIe Third-Party Cards:** Installing non-HPE PCIe cards (such as NVIDIA GPUs or 10GbE SFP+ NICs) typically triggers iLO 4's aggressive thermal algorithm, causing fans to spin at 60-100% permanently. This application overrides those limits and locks fan speeds at your designated quiet levels.
+| Variable | Default | Description |
+| :--- | :---: | :--- |
+| `PORT` | `3000` | HTTP listening port for the web application. |
+| `ILO_ENCRYPTION_KEY` | *(Auto-generated)* | 32-byte hex key for AES-256-GCM encryption of stored iLO passwords. When omitted, an encryption key is generated automatically and saved into `data/.secret_key`. |
+| `ILO_REJECT_UNAUTHORIZED` | `false` | Set to `true` to verify SSL certificates on iLO 4 HTTPS requests (keep `false` for default factory self-signed certs). |
+| `COOKIE_SECURE` | `auto` | Cookie HTTPS flag: `auto` (auto-detects HTTPS / proxy headers), `true` (enforce HTTPS cookies), or `false` (allow plain HTTP on LAN). |
+| `TRUST_PROXY` | `false` | Enable **ONLY** when deployed behind a trusted reverse proxy (Nginx, Caddy, Cloudflare Tunnel). **Security Warning:** Do NOT enable `TRUST_PROXY` if the application is exposed directly to clients without a reverse proxy, as clients could forge `X-Forwarded-For` and `X-Forwarded-Host` headers. |
 
 ---
 
-## 📦 Building From Source
+## 🔒 Security Architecture
 
-```bash
-# Clone the repository
-git clone https://github.com/vietnamvps/ilo-fan-controller.git
-cd ilo-fan-controller
-
-# Build and start via Docker Compose
-docker compose build --no-cache
-docker compose up -d
-```
-
-### Local Development
-
-```bash
-# Install dependencies
-npm install
-
-# Run development server
-npm run dev
-
-# Run type check
-npx tsc --noEmit
-
-# Check i18n key parity
-node scripts/check-i18n.js
-```
+- **Defense-in-Depth Authentication:** Dual-layer verification with `proxy.ts` request proxy and `requireAuth()` guards on every protected API route. Session tokens use HS256 JWT signed with an auto-generated cryptographic secret.
+- **Rate-Limiting Protection:** Maximum 5 failed login attempts per 15-minute window per IP/account, returning HTTP 429 (`Retry-After`).
+- **AES-256-GCM Password Encryption:** iLO credentials are encrypted at rest with authenticated AES-256-GCM in SQLite. Passwords are never sent back to the frontend.
+  - *Key Storage & Backup Limitation:* The local key is stored in `data/.secret_key` (file mode `0600`). **Important Limitation:** If you back up the entire `./data` directory, the backup contains both the SQLite database (`app.db`) and the encryption key (`.secret_key`). Anyone with read access to the backup can decrypt the stored iLO password. In high-security setups, inject `ILO_ENCRYPTION_KEY` from a separate secret manager (e.g. Docker secrets or CI/CD env).
+- **Strict Parameter Validation:** Fan bay indices are strictly validated to integers `0..5`, speeds to `0..100`, and hosts to valid IPv4/hostnames to eliminate command injection risk.
+- **CSRF Protection:** State-mutating requests (POST, PUT, PATCH, DELETE) verify `Origin` and `Host` headers. When `TRUST_PROXY=true`, `X-Forwarded-Host` is used.
+- **Linux Non-Root Permissions:** The container executes as user `node` (`uid: 1000`, `gid: 1000`). Run `mkdir -p ./data && chown -R 1000:1000 ./data` on the host to grant SQLite write access.
+- **Recommended Deployment:** Keep this tool strictly within a private management LAN or isolated management VLAN. Never expose this interface directly to the public internet without an authenticated, HTTPS-enabled reverse proxy and multi-factor authentication (MFA).
 
 ---
 
-## 🗂️ Project Structure
+## ⚠️ Hardware Safety & Warranty Disclaimer
 
-```text
-├── src/
-│   ├── app/
-│   │   ├── api/             # Next.js API Routes (auth, fans, presets, thermal, config)
-│   │   ├── login/           # Administrator login page
-│   │   ├── setup/           # First-time onboarding wizard
-│   │   ├── settings/        # iLO 4 configuration & password management
-│   │   ├── layout.tsx       # Root layout with SSR locale detection
-│   │   └── page.tsx         # Real-time Fan & Thermal Dashboard
-│   ├── components/          # Reusable UI components (FanCard, Header, ThermalGrid, etc.)
-│   ├── contexts/            # LanguageContext (VI / EN provider)
-│   ├── lib/                 # SSH/Redfish handlers (ilo.ts), SQLite database (db.ts), i18n
-│   ├── locales/             # vi.json & en.json dictionaries
-│   └── types/               # TypeScript interfaces & types
-├── scripts/
-│   └── check-i18n.js        # Automated i18n key parity verifier
-├── Dockerfile               # Multi-stage standalone production build
-└── docker-compose.yml       # Production deployment specification
-```
+> [!WARNING]
+> **PLEASE READ CAREFULLY BEFORE USE:**  
+> Manually controlling server fan speeds below factory thresholds or running third-party modified iLO firmware may lead to component overheating, thermal throttling, degraded hardware lifespan, or permanent physical damage if fan curves are misconfigured.  
+> This software is provided "as is", without warranty of any kind. You assume full responsibility for monitoring thermal readings and operating your equipment safely. The authors and contributors shall not be held liable for any hardware damage, data loss, or voided manufacturer warranties resulting from the use of this software.
 
 ---
 
-## 🔒 Security
+## ⚖️ Trademark Disclaimer
 
-- Passwords are encrypted using salted bcrypt hashes in SQLite.
-- iLO credentials are encrypted at rest with local hardware keys.
-- Session tokens are stored in `httpOnly` secure cookies.
-- No telemetry or external cloud calls; 100% self-hosted on your local network.
+> [!NOTE]
+> **HPE, ProLiant, and iLO** are registered trademarks of **Hewlett Packard Enterprise Company**.  
+> This project is an independent, community-driven open-source utility and is **not affiliated with, endorsed by, certified by, or sponsored by Hewlett Packard Enterprise Company**.
+
+---
+
+## 🤝 Credits & Acknowledgements
+
+- Special thanks to **Kendall Goto** for the open-source firmware research: [`kendallgoto/ilo4_unlock`](https://github.com/kendallgoto/ilo4_unlock).
+- Thanks to the homelab community and the *"Silence of the Fans"* enthusiasts for documenting HPE iLO 4 CLI commands.
 
 ---
 
 ## 📄 License
 
-This project is open-source under the [MIT License](LICENSE).
+This project is licensed under the [MIT License](LICENSE).
+See [THIRD_PARTY_LICENSES.md](THIRD_PARTY_LICENSES.md) for licenses of third-party libraries.
