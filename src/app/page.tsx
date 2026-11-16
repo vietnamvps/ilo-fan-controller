@@ -23,6 +23,8 @@ import {
   AlertCircle,
   Plus,
   Play,
+  Activity,
+  RefreshCw,
 } from "lucide-react";
 import { ServerThermalData, FanPreset, LogEntry } from "@/types";
 import { useTranslation } from "../contexts/LanguageContext";
@@ -51,6 +53,11 @@ export default function DashboardPage() {
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDesc, setNewPresetDesc] = useState("");
 
+  // Smart Thermal Auto & Default Restore states
+  const [smartAutoEnabled, setSmartAutoEnabled] = useState(false);
+  const [isTogglingAuto, setIsTogglingAuto] = useState(false);
+  const [isRestoringDefault, setIsRestoringDefault] = useState(false);
+
   const addLog = useCallback(
     (
       content: string | { key: string; params?: Record<string, string | number> },
@@ -78,6 +85,9 @@ export default function DashboardPage() {
       if (!res.ok) throw new Error("Không thể kết nối API Thermal");
       const data: ServerThermalData = await res.json();
       setThermalData(data);
+      if (data.smartAuto) {
+        setSmartAutoEnabled(data.smartAuto.enabled);
+      }
       setIsLoading(false);
       setIsRefreshing(false);
     } catch (err: unknown) {
@@ -164,6 +174,93 @@ export default function DashboardPage() {
     }));
   };
 
+  // Toggle Smart Thermal Auto Mode
+  const handleToggleSmartAuto = async (enabled: boolean) => {
+    setIsTogglingAuto(true);
+    try {
+      const res = await fetch("/api/ilo/auto", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ enabled }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Lỗi bật/tắt chế độ tự động");
+      }
+      setSmartAutoEnabled(result.state?.enabled ?? enabled);
+      addLog(
+        {
+          key: enabled
+            ? "dashboard.logs.items.smartAutoEnabled"
+            : "dashboard.logs.items.smartAutoDisabled",
+        },
+        "info"
+      );
+      await fetchThermal();
+    } catch (err: unknown) {
+      addLog(
+        {
+          key: "dashboard.logs.items.operationError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
+    } finally {
+      setIsTogglingAuto(false);
+    }
+  };
+
+  // Restore Native iLO Default Control (fan p 0..5 max 255)
+  const handleRestoreDefault = async () => {
+    if (!confirm(t("dashboard.restoreDefault.confirm"))) return;
+    setIsRestoringDefault(true);
+    addLog({ key: "dashboard.restoreDefault.applying" }, "info");
+    try {
+      const res = await fetch("/api/ilo/fans", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "restore_default" }),
+      });
+      const result = await res.json();
+      if (!res.ok) {
+        throw new Error(result.error || "Lỗi khôi phục mặc định iLO");
+      }
+      if (Array.isArray(result.logs)) {
+        result.logs.forEach(
+          (
+            item:
+              | string
+              | {
+                  key: string;
+                  params?: Record<string, string | number>;
+                  type?: "info" | "success" | "warn" | "error";
+                }
+          ) => {
+            if (typeof item === "string") {
+              addLog(item, "info");
+            } else if (item && item.key) {
+              addLog({ key: item.key, params: item.params }, item.type || "info");
+            }
+          }
+        );
+      }
+      addLog({ key: "dashboard.logs.items.restoreDefaultSuccess" }, "success");
+      setSmartAutoEnabled(false);
+      setPendingSpeeds({});
+      await fetchThermal();
+    } catch (err: unknown) {
+      addLog(
+        {
+          key: "dashboard.logs.items.operationError",
+          params: { error: err instanceof Error ? err.message : String(err) },
+        },
+        "error"
+      );
+    } finally {
+      setIsRestoringDefault(false);
+    }
+  };
+
   // Apply speed to a single fan
   const handleApplySingleFan = async (index: number, speed: number) => {
     setIsApplying(true);
@@ -218,6 +315,7 @@ export default function DashboardPage() {
         "success"
       );
 
+      setSmartAutoEnabled(false);
       // Clear pending state for this fan
       setPendingSpeeds((prev) => {
         const next = { ...prev };
@@ -293,6 +391,7 @@ export default function DashboardPage() {
         },
         "success"
       );
+      setSmartAutoEnabled(false);
       setPendingSpeeds({});
       fetchThermal();
     } catch (err: unknown) {
@@ -369,6 +468,7 @@ export default function DashboardPage() {
         },
         "success"
       );
+      setSmartAutoEnabled(false);
       setPendingSpeeds({});
       fetchThermal();
     } catch (err: unknown) {
@@ -597,6 +697,54 @@ export default function DashboardPage() {
           {/* Master Fan Sync Slider */}
           <div className="rounded-2xl border border-gray-800 bg-[#0f1626]/80 p-6 shadow-xl flex flex-col justify-between">
             <div>
+              {/* Smart Auto Control Box */}
+              <div className="mb-4 p-3.5 rounded-xl bg-gray-900/90 border border-gray-800">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2.5">
+                    <div className={`p-1.5 rounded-lg border ${smartAutoEnabled ? "bg-emerald-500/20 text-emerald-400 border-emerald-500/30" : "bg-gray-800 text-gray-400 border-gray-700"}`}>
+                      <Activity className={`w-4 h-4 ${smartAutoEnabled ? "animate-pulse text-emerald-400" : ""}`} />
+                    </div>
+                    <div>
+                      <div className="flex items-center space-x-2">
+                        <span className="text-xs font-bold text-white block">{t("dashboard.auto.title")}</span>
+                        <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${smartAutoEnabled ? "bg-emerald-500/20 text-emerald-400 border border-emerald-500/30" : "bg-gray-800 text-gray-400"}`}>
+                          {smartAutoEnabled ? t("dashboard.auto.badgeActive") : t("dashboard.auto.badgeInactive")}
+                        </span>
+                      </div>
+                      <span className="text-[10px] text-gray-400">{t("dashboard.auto.subtitle")}</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleSmartAuto(!smartAutoEnabled)}
+                    disabled={isTogglingAuto}
+                    className={`relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition-colors focus:outline-none disabled:opacity-50 ${
+                      smartAutoEnabled ? "bg-emerald-500" : "bg-gray-700"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white shadow transition-transform ${
+                        smartAutoEnabled ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </div>
+                {smartAutoEnabled && thermalData?.smartAuto && (
+                  <div className="mt-2.5 pt-2 border-t border-gray-800 text-[11px] text-emerald-400/90 flex items-center justify-between">
+                    <span>
+                      {t("dashboard.auto.statusDescription", {
+                        temp: thermalData.smartAuto.controllingTemp,
+                        speed: thermalData.smartAuto.targetSpeed,
+                        sensor: thermalData.smartAuto.controllingSensor,
+                      })}
+                    </span>
+                    <span className="text-[10px] font-mono bg-emerald-500/10 px-1.5 py-0.5 rounded text-emerald-300 border border-emerald-500/20">
+                      {thermalData.smartAuto.controllingSensor}
+                    </span>
+                  </div>
+                )}
+              </div>
+
               <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center space-x-2">
                   <div className="p-2 rounded-xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
@@ -618,8 +766,9 @@ export default function DashboardPage() {
                   min={minFanSpeed}
                   max={maxFanSpeed}
                   value={masterSpeed}
+                  disabled={smartAutoEnabled}
                   onChange={(e) => setMasterSpeed(Number(e.target.value))}
-                  className="w-full accent-emerald-500 cursor-pointer"
+                  className="w-full accent-emerald-500 cursor-pointer disabled:opacity-40"
                 />
                 <div className="flex justify-between text-xs font-mono text-gray-400">
                   <span>{t("dashboard.fans.safeLabel", { min: minFanSpeed })}</span>
@@ -631,7 +780,7 @@ export default function DashboardPage() {
 
             <button
               onClick={handleApplyMasterSpeed}
-              disabled={isApplying}
+              disabled={isApplying || smartAutoEnabled}
               className="w-full py-2.5 px-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-semibold text-sm shadow-lg shadow-emerald-900/40 transition-all flex items-center justify-center space-x-2 disabled:opacity-50"
             >
               <Play className="w-4 h-4 fill-current" />
@@ -653,13 +802,25 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <button
-                  onClick={() => setShowPresetModal(true)}
-                  className="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition-all"
-                >
-                  <Plus className="w-3.5 h-3.5" />
-                  <span>{t("dashboard.presets.addCustomPreset")}</span>
-                </button>
+                <div className="flex items-center space-x-2">
+                  <button
+                    onClick={handleRestoreDefault}
+                    disabled={isRestoringDefault}
+                    title={t("dashboard.restoreDefault.tooltip")}
+                    className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-xs font-semibold text-amber-400 border border-amber-500/30 flex items-center space-x-1.5 transition-all disabled:opacity-50"
+                  >
+                    <RefreshCw className={`w-3.5 h-3.5 ${isRestoringDefault ? "animate-spin" : ""}`} />
+                    <span>{t("dashboard.restoreDefault.button")}</span>
+                  </button>
+
+                  <button
+                    onClick={() => setShowPresetModal(true)}
+                    className="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition-all"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t("dashboard.presets.addCustomPreset")}</span>
+                  </button>
+                </div>
               </div>
 
               {/* Preset Cards */}

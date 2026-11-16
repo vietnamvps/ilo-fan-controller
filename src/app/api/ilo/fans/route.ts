@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { setFanSpeeds } from "../../../../lib/ilo";
+import { setFanSpeeds, restoreIloDefaultFans } from "../../../../lib/ilo";
 import { requireAuth } from "../../../../lib/auth";
 import { isValidFanIndex, isValidFanSpeed, verifyCsrf } from "../../../../lib/validation";
+import { setSmartAutoEnabled } from "../../../../lib/smart-auto";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,14 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
+
+    // Hành động khôi phục chế độ mặc định của iLO (Max 255)
+    if (body.action === "restore_default" || body.restoreDefault === true) {
+      setSmartAutoEnabled(false);
+      const result = await restoreIloDefaultFans();
+      return NextResponse.json(result);
+    }
+
     let fansToUpdate: { index: number; speed: number }[] = [];
 
     if (typeof body.allSpeed === "number") {
@@ -67,6 +76,8 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: "Không có quạt nào được chỉ định để cập nhật" }, { status: 400 });
     }
 
+    // Tự động tắt Smart Auto khi người dùng điều chỉnh thủ công
+    setSmartAutoEnabled(false);
     const result = await setFanSpeeds(fansToUpdate);
     return NextResponse.json(result);
   } catch (err: unknown) {

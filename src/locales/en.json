@@ -154,6 +154,23 @@
         }
       }
     },
+    "auto": {
+      "title": "Smart Thermal Auto",
+      "subtitle": "Dynamically adjust fan speeds based on real-time temperature telemetry",
+      "badgeActive": "AUTO ACTIVE",
+      "badgeInactive": "MANUAL",
+      "toggleEnable": "Enable Auto",
+      "toggleDisable": "Disable Auto",
+      "statusDescription": "Target: {speed}% PWM (Driven by {sensor}: {temp}°C)",
+      "coolingDown": "System cooled down, fan speed decreasing gradually...",
+      "curveTip": "Smart thermal curve: Automatically increases speed when CPU > 50°C and returns to whisper-quiet when idle."
+    },
+    "restoreDefault": {
+      "button": "Restore iLO Default",
+      "tooltip": "Send 'fan p 0..5 max 255' to hand fan control back to native iLO algorithm",
+      "confirm": "Are you sure you want to restore fans back to native iLO default control (Max 255)? Note: If you have non-HP PCIe cards or SSDs installed, fans may ramp up significantly.",
+      "applying": "Sending SSH commands to uncap fans to iLO default (Max 255)..."
+    },
     "presets": {
       "title": "Quick Cooling Presets",
       "description": "Select pre-configured cooling profiles to quickly switch fan curves according to actual workloads.",
@@ -223,7 +240,12 @@
         "sshCmdError": "[ERROR] Failed to send command \"{cmd}\": {error}",
         "fanConfigured": "Configured Fan #{index} MAX = {rawVal} (~{speed}%)",
         "fansCompleted": "Completed controlling {count} fans on iLO server!",
-        "sshError": "[SSH-ERROR] {error}"
+        "sshError": "[SSH-ERROR] {error}",
+        "restoreDefaultSuccess": "Success! All 6 fans restored to native iLO default automatic mode (Max 255)",
+        "fanRestoredDefault": "Fan #{index}: Limit un-capped to iLO default (Max 255)",
+        "smartAutoEnabled": "Activated Smart Thermal Auto Mode",
+        "smartAutoDisabled": "Deactivated Smart Thermal Auto Mode, switched to manual control",
+        "smartAutoAdjusted": "Smart Auto: Automatically set fans to {speed}% based on {sensor} ({temp}°C)"
       }
     },
     "modal": {

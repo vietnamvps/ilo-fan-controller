@@ -240,6 +240,8 @@ export function getIloConfig(): IloConfig {
   const mockModeStr = getSetting("mock_mode", "");
   const mockMode = mockModeStr ? mockModeStr === "true" : Boolean(process.env.MOCK_MODE === "true" || !host);
   const autoRefreshInterval = Number(getSetting("auto_refresh_interval", "5")) || 5;
+  const smartAutoEnabled = getSetting("smart_auto_enabled", "false") === "true";
+  const smartAutoTargetTemp = Number(getSetting("smart_auto_target_temp", "55")) || 55;
 
   return {
     host,
@@ -251,6 +253,8 @@ export function getIloConfig(): IloConfig {
     maxFanSpeed,
     mockMode,
     autoRefreshInterval,
+    smartAutoEnabled,
+    smartAutoTargetTemp,
   };
 }
 
@@ -271,6 +275,12 @@ export function saveIloConfig(config: IloConfig): void {
     insertStmt.run("max_fan_speed", String(config.maxFanSpeed || 100));
     insertStmt.run("mock_mode", config.mockMode ? "true" : "false");
     insertStmt.run("auto_refresh_interval", String(config.autoRefreshInterval || 5));
+    if (config.smartAutoEnabled !== undefined) {
+      insertStmt.run("smart_auto_enabled", config.smartAutoEnabled ? "true" : "false");
+    }
+    if (config.smartAutoTargetTemp !== undefined) {
+      insertStmt.run("smart_auto_target_temp", String(config.smartAutoTargetTemp));
+    }
   });
 
   saveMany();

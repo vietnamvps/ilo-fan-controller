@@ -154,6 +154,23 @@
         }
       }
     },
+    "auto": {
+      "title": "Smart Thermal Auto",
+      "subtitle": "Tự động điều tốc quạt dựa trên nhiệt độ cảm biến thực tế",
+      "badgeActive": "ĐANG TỰ ĐỘNG",
+      "badgeInactive": "THỦ CÔNG",
+      "toggleEnable": "Bật Tự động",
+      "toggleDisable": "Tắt Tự động",
+      "statusDescription": "Mục tiêu: {speed}% PWM (Dựa trên {sensor}: {temp}°C)",
+      "coolingDown": "Nhiệt độ đã hạ nhiệt, quạt đang giảm dần...",
+      "curveTip": "Đường cong nhiệt thông minh: Tự động tăng tốc khi CPU > 50°C và giảm về mức êm ái khi nhàn rỗi."
+    },
+    "restoreDefault": {
+      "button": "Khôi phục iLO Mặc định",
+      "tooltip": "Gửi lệnh 'fan p 0..5 max 255' để trả quyền điều tốc cho thuật toán gốc của iLO",
+      "confirm": "Bạn có chắc chắn muốn trả quyền điều khiển quạt về cho thuật toán mặc định của iLO (Max 255) không? Lưu ý: Nếu server có gắn card PCIe/SSD ngoài, quạt có thể chạy mạnh theo thuật toán gốc của HP.",
+      "applying": "Đang gửi SSH mở trần quạt về mặc định iLO (Max 255)..."
+    },
     "presets": {
       "title": "Chế độ Cài đặt sẵn (Fan Presets)",
       "description": "Chuyển đổi profile âm lượng và làm mát chỉ với 1 cú nhấp chuột",
@@ -223,7 +240,12 @@
         "sshCmdError": "[LỖI] Lỗi gửi lệnh \"{cmd}\": {error}",
         "fanConfigured": "Đã thiết lập Quạt #{index} MAX = {rawVal} (~{speed}%)",
         "fansCompleted": "Hoàn tất điều khiển {count} quạt trên máy chủ iLO!",
-        "sshError": "[SSH-LỖI] {error}"
+        "sshError": "[SSH-LỖI] {error}",
+        "restoreDefaultSuccess": "Thành công! Đã khôi phục toàn bộ 6 quạt về chế độ tự động của iLO (Max 255)",
+        "fanRestoredDefault": "Quạt #{index}: Đã mở trần giới hạn về mặc định iLO (Max 255)",
+        "smartAutoEnabled": "Đã bật Chế độ Tự động Thông minh (Smart Thermal Auto)",
+        "smartAutoDisabled": "Đã tắt Chế độ Tự động Thông minh, chuyển sang điều khiển thủ công",
+        "smartAutoAdjusted": "Smart Auto: Tự động điều chỉnh quạt sang {speed}% theo nhiệt độ {sensor} ({temp}°C)"
       }
     },
     "modal": {

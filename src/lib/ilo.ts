@@ -363,6 +363,132 @@ export async function setFanSpeeds(fansToUpdate: { index: number; speed: number 
   });
 }
 
+export async function restoreIloDefaultFans(): Promise<SetFanResult> {
+  const config = await getIloConfig();
+  const logs: FanLogItem[] = [];
+
+  // Handle Mock Mode
+  if (config.mockMode || !config.host || config.host === "your-ilo-address" || config.host === "192.168.1.100") {
+    mockFanSpeeds = [25, 25, 25, 25, 25, 25];
+    for (let i = 0; i < 6; i++) {
+      logs.push(`[SSH-MOCK] fan p ${i} max 255 -> OK (Default Auto)`);
+    }
+    logs.push({
+      key: "dashboard.logs.items.restoreDefaultSuccess",
+      type: "success",
+    });
+    return {
+      success: true,
+      message: "Đã khôi phục tốc độ quạt mặc định của iLO thành công (Mô phỏng)",
+      logs,
+      fans: getSimulatedFans(mockFanSpeeds),
+    };
+  }
+
+  // Real server SSH: send fan p <0..5> max 255
+  return new Promise((resolve) => {
+    const conn = new Client();
+
+    logs.push({
+      key: "dashboard.logs.items.sshConnecting",
+      params: { host: config.host, port: config.sshPort || 22 },
+      type: "info",
+    });
+
+    conn
+      .on("ready", async () => {
+        logs.push({
+          key: "dashboard.logs.items.sshConnected",
+          params: { username: config.username },
+          type: "success",
+        });
+
+        for (let i = 0; i < 6; i++) {
+          const cmd = `fan p ${i} max 255`;
+          await new Promise<void>((cmdResolve) => {
+            const timeoutTimer = setTimeout(() => {
+              logs.push({
+                key: "dashboard.logs.items.sshCmdTimeout",
+                params: { index: i + 1, cmd },
+                type: "warn",
+              });
+              cmdResolve();
+            }, 3000);
+
+            conn.exec(cmd, (err, stream) => {
+              if (err) {
+                clearTimeout(timeoutTimer);
+                logs.push({
+                  key: "dashboard.logs.items.sshCmdError",
+                  params: { cmd, error: err.message },
+                  type: "error",
+                });
+                cmdResolve();
+                return;
+              }
+              let output = "";
+              stream.on("data", (data: Buffer) => {
+                output += data.toString();
+              });
+              stream.stderr.on("data", (data: Buffer) => {
+                output += data.toString();
+              });
+              stream.on("close", () => {
+                clearTimeout(timeoutTimer);
+                const trimmed = output.trim();
+                if (trimmed) {
+                  logs.push(`[ILO-SSH] ${trimmed}`);
+                }
+                logs.push({
+                  key: "dashboard.logs.items.fanRestoredDefault",
+                  params: { index: i + 1 },
+                  type: "info",
+                });
+                cmdResolve();
+              });
+            });
+          });
+        }
+
+        conn.end();
+        logs.push({
+          key: "dashboard.logs.items.restoreDefaultSuccess",
+          type: "success",
+        });
+
+        setTimeout(async () => {
+          const thermal = await fetchServerThermal();
+          resolve({
+            success: true,
+            message: "Đã khôi phục chế độ quạt tự động mặc định của iLO thành công!",
+            logs,
+            fans: thermal.fans,
+          });
+        }, 1500);
+      })
+      .on("error", (err) => {
+        logs.push({
+          key: "dashboard.logs.items.sshError",
+          params: { error: err.message },
+          type: "error",
+        });
+        resolve({
+          success: false,
+          message: `Không thể kết nối SSH tới iLO (${config.host}:${config.sshPort}): ${err.message}`,
+          logs,
+        });
+      })
+      .connect({
+        host: config.host,
+        port: config.sshPort || 22,
+        username: config.username,
+        password: config.password,
+        readyTimeout: 10000,
+        algorithms: ILO_SSH_ALGORITHMS,
+      });
+  });
+}
+
 export async function testIloConnection(customConfig?: Partial<IloConfig>): Promise<{
   restOk: boolean;
   sshOk: boolean;

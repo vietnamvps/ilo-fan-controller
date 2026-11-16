@@ -13,6 +13,15 @@ export interface TempSensor {
   status: "OK" | "Warning" | "Critical";
 }
 
+export interface SmartAutoState {
+  enabled: boolean;
+  targetSpeed: number;
+  controllingSensor: string;
+  controllingTemp: number;
+  lastAdjusted?: string;
+  isCoolingDown?: boolean;
+}
+
 export interface ServerThermalData {
   fans: FanStatus[];
   temperatures: TempSensor[];
@@ -22,6 +31,7 @@ export interface ServerThermalData {
   isMock: boolean;
   connectionError?: string;
   iloHost?: string;
+  smartAuto?: SmartAutoState;
 }
 
 export interface FanPreset {
@@ -42,6 +52,8 @@ export interface IloConfig {
   maxFanSpeed: number; // Safe maximum fan limit, e.g. 100%
   mockMode: boolean;
   autoRefreshInterval: number; // In seconds
+  smartAutoEnabled?: boolean;
+  smartAutoTargetTemp?: number;
 }
 
 export interface AuthConfig {
