@@ -48,38 +48,39 @@ export default function FanCard({
   }
 
   return (
-    <div className="relative rounded-2xl p-5 border border-gray-800 bg-gradient-to-b from-[#131c31] to-[#0d1424] shadow-xl hover:border-gray-700 transition-all flex flex-col justify-between">
+    <div className="relative rounded-2xl p-3.5 sm:p-4 border border-gray-800 bg-gradient-to-b from-[#131c31] to-[#0d1424] shadow-xl hover:border-gray-700 transition-all flex flex-col justify-between">
       {/* Top Bar: Fan index, Name & Status */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-7 h-7 rounded-lg bg-gray-800/80 border border-gray-700 flex items-center justify-center font-mono text-xs font-bold text-gray-300">
-            #{fan.index + 1}
-          </div>
-          <div>
-            <h3 className="font-semibold text-white text-sm tracking-wide">{fan.name}</h3>
-            <span className="text-[11px] text-gray-400">
-              {t("dashboard.fans.fanCard.bayLabel", { index: fan.index + 1 })}
+      <div className="flex items-center justify-between gap-1.5 pb-2.5 border-b border-gray-800/80">
+        <div className="flex items-center space-x-2 min-w-0">
+          <span className="w-6 h-6 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/25 flex items-center justify-center font-mono text-xs font-bold shrink-0">
+            {fan.index + 1}
+          </span>
+          <div className="min-w-0">
+            <h3 className="font-bold text-white text-xs sm:text-sm tracking-tight truncate leading-tight">
+              {fan.name}
+            </h3>
+            <span className="text-[10px] text-gray-400 font-mono block truncate leading-none mt-0.5">
+              Bay #{fan.index + 1}
             </span>
           </div>
         </div>
 
-        <div className={`px-2.5 py-1 rounded-full text-xs font-medium border flex items-center space-x-1 ${badgeColor}`}>
-          <span>{speedText}</span>
-          <span>•</span>
-          <span className="font-bold">{fan.speed}%</span>
+        <div className={`px-2 py-0.5 rounded-full text-[10px] sm:text-[11px] font-semibold border flex items-center space-x-1 shrink-0 whitespace-nowrap ${badgeColor}`}>
+          <span className="w-1.5 h-1.5 rounded-full bg-current opacity-80" />
+          <span>{fan.speed}%</span>
         </div>
       </div>
 
       {/* Center Fan Graphic & Live Rotation */}
-      <div className="my-5 flex flex-col items-center justify-center">
-        <div className="relative w-32 h-32 flex items-center justify-center">
+      <div className="my-3 sm:my-4 flex flex-col items-center justify-center">
+        <div className="relative w-28 h-28 flex items-center justify-center">
           {/* Fan Housing Outer Ring */}
           <div className="absolute inset-0 rounded-full border-4 border-gray-800/90 shadow-inner" />
           <div className="absolute inset-2 rounded-full border border-gray-700/50 bg-[#090d16]" />
 
           {/* Rotating Blades SVG */}
           <svg
-            className="w-24 h-24 fan-spinning z-10"
+            className="w-20 h-20 fan-spinning z-10"
             style={{
               "--spin-duration": `${spinDuration}s`,
             } as React.CSSProperties}
@@ -131,22 +132,22 @@ export default function FanCard({
           </svg>
 
           {/* Center Hub Indicator */}
-          <div className="absolute z-20 w-8 h-8 rounded-full bg-gray-900 border-2 border-gray-600 flex items-center justify-center shadow-lg">
-            <span className="text-[10px] font-mono font-bold text-gray-300">
+          <div className="absolute z-20 w-7 h-7 rounded-full bg-gray-900 border-2 border-gray-600 flex items-center justify-center shadow-lg">
+            <span className="text-[9px] font-mono font-bold text-gray-300">
               {currentSpeed}%
             </span>
           </div>
         </div>
 
         {/* Speed Label */}
-        <div className="mt-3 flex items-center space-x-2 text-xs text-gray-400">
+        <div className="mt-2.5 flex items-center space-x-1.5 text-xs text-gray-400 whitespace-nowrap">
           <span>
             {t("dashboard.fans.fanCard.currentReading")}{" "}
             <strong className="text-white font-mono">{fan.speed}%</strong>
           </span>
           {pendingSpeed !== undefined && pendingSpeed !== fan.speed && (
             <span className="text-amber-400 font-mono font-medium">
-              {t("dashboard.fans.fanCard.newSpeed", { speed: pendingSpeed })}
+              ➔ {pendingSpeed}%
             </span>
           )}
         </div>
