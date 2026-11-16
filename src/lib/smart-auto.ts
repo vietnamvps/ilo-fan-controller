@@ -23,94 +23,175 @@ const runtimeState: SmartAutoRuntimeState = {
 let lastAppliedSpeed = -1;
 let lastAppliedTime = 0;
 let isAdjusting = false;
+let highTempHoldCycles = 0; // Số chu kỳ giữ tốc độ sau khi nhiệt độ đã hạ để tránh tụt sốc
 
-// Đánh giá nhiệt độ kiểm soát cao nhất giữa CPU và các thành phần quan trọng
-export function evaluateSystemThermal(temperatures: TempSensor[]): {
-  controllingSensor: string;
-  controllingTemp: number;
-  cpuMax: number;
-} {
-  let cpuMax = 0;
-  let controllingTemp = 0;
-  let controllingSensor = "CPU";
+/**
+ * Tính toán tốc độ quạt yêu cầu cho từng loại linh kiện dựa theo đặc tính kỹ thuật phần cứng HPE:
+ */
+export function calculateSensorFanDemand(
+  sensor: TempSensor,
+  minFanSpeed: number,
+  maxFanSpeed: number
+): number {
+  const nameLower = sensor.name.toLowerCase();
+  const temp = sensor.temperature;
+  if (temp <= 0) return minFanSpeed;
 
-  for (const t of temperatures) {
-    const nameLower = t.name.toLowerCase();
-    const temp = t.temperature;
-    if (temp <= 0) continue; // Cảm biến offline hoặc không khả dụng
+  let demandedSpeed = minFanSpeed;
 
-    if (nameLower.includes("cpu")) {
-      if (temp > cpuMax) cpuMax = temp;
-      if (temp > controllingTemp) {
-        controllingTemp = temp;
-        controllingSensor = t.name;
-      }
-    } else if (
-      nameLower.includes("controller") ||
-      nameLower.includes("raid") ||
-      nameLower.includes("smart array")
-    ) {
-      // Controller lưu trữ SAS/SATA thường chạy nóng tự nhiên (~50-60°C). Trừ 8°C để cân bằng với đường cong CPU
-      const normalized = Math.max(0, temp - 8);
-      if (normalized > controllingTemp) {
-        controllingTemp = normalized;
-        controllingSensor = t.name;
-      }
-    } else if (nameLower.includes("pcie") || nameLower.includes("lom")) {
-      // Card mạng / PCIe mở rộng
-      const normalized = Math.max(0, temp - 5);
-      if (normalized > controllingTemp) {
-        controllingTemp = normalized;
-        controllingSensor = t.name;
-      }
+  if (nameLower.includes("cpu")) {
+    // 1. CPU (Intel Xeon E5-2600 v3/v4 - TDP 85W-145W, TJMax ~85-90°C)
+    // - <= 42°C: Nhàn rỗi -> Mức quạt tối thiểu an toàn (15-20%)
+    // - 43°C - 55°C: Tải nhẹ/văn phòng -> 20% - 28% (tĩnh lặng)
+    // - 56°C - 65°C: Tải trung bình -> 28% - 42% (làm mát êm ái)
+    // - 66°C - 75°C: Tải nặng liên tục -> 42% - 65% (tản nhiệt mạnh)
+    // - 76°C - 82°C: Rất nóng -> 65% - 85%
+    // - > 82°C: Khẩn cấp -> 100%
+    if (temp <= 42) {
+      demandedSpeed = minFanSpeed;
+    } else if (temp <= 55) {
+      const p = (temp - 42) / (55 - 42);
+      demandedSpeed = minFanSpeed + p * (28 - minFanSpeed);
+    } else if (temp <= 65) {
+      const p = (temp - 55) / (65 - 55);
+      demandedSpeed = 28 + p * (42 - 28);
+    } else if (temp <= 75) {
+      const p = (temp - 65) / (75 - 65);
+      demandedSpeed = 42 + p * (65 - 42);
+    } else if (temp <= 82) {
+      const p = (temp - 75) / (82 - 75);
+      demandedSpeed = 65 + p * (85 - 65);
+    } else {
+      demandedSpeed = 100;
+    }
+  } else if (
+    nameLower.includes("controller") ||
+    nameLower.includes("raid") ||
+    nameLower.includes("smart array") ||
+    nameLower.includes("storage")
+  ) {
+    // 2. SAS Storage Controller (Smart Array P440ar, chip LSI ROC)
+    // Đặc thù SAS ROC tỏa nhiệt thụ động 50-65°C là hoàn toàn bình thường (ngưỡng an toàn lên tới 85°C).
+    // Chỉ tăng quạt khi controller vượt ngưỡng 60°C.
+    if (temp <= 60) {
+      demandedSpeed = minFanSpeed;
+    } else if (temp <= 72) {
+      const p = (temp - 60) / (72 - 60);
+      demandedSpeed = minFanSpeed + p * (35 - minFanSpeed);
+    } else if (temp <= 80) {
+      const p = (temp - 72) / (80 - 72);
+      demandedSpeed = 35 + p * (65 - 35);
+    } else {
+      demandedSpeed = 100;
+    }
+  } else if (nameLower.includes("pcie") || nameLower.includes("lom") || nameLower.includes("slot")) {
+    // 3. Cạc mạng 10GbE SFP+, NVMe adapter, cạc đồ họa PCIe
+    // Thường hoạt động ở mức 45-58°C.
+    if (temp <= 58) {
+      demandedSpeed = minFanSpeed;
+    } else if (temp <= 70) {
+      const p = (temp - 58) / (70 - 58);
+      demandedSpeed = minFanSpeed + p * (35 - minFanSpeed);
+    } else if (temp <= 80) {
+      const p = (temp - 70) / (80 - 70);
+      demandedSpeed = 35 + p * (60 - 35);
+    } else {
+      demandedSpeed = 90;
+    }
+  } else if (nameLower.includes("memory") || nameLower.includes("dimm")) {
+    // 4. Mảng RAM DDR4 Registered (Ngưỡng định mức JEDEC 85°C)
+    if (temp <= 50) {
+      demandedSpeed = minFanSpeed;
+    } else if (temp <= 68) {
+      const p = (temp - 50) / (68 - 50);
+      demandedSpeed = minFanSpeed + p * (35 - minFanSpeed);
+    } else {
+      demandedSpeed = 60;
+    }
+  } else if (nameLower.includes("ambient") || nameLower.includes("inlet")) {
+    // 5. Cảm biến cửa hút gió phòng máy (Ambient Inlet)
+    // Nếu phòng mát (<= 28°C), không yêu cầu thêm tốc độ quạt.
+    // Nếu phòng nóng (> 30°C), cần tăng nhẹ sàn quạt để tăng lưu thông khí.
+    if (temp > 30) {
+      demandedSpeed = minFanSpeed + (temp - 30) * 1.5;
+    } else {
+      demandedSpeed = minFanSpeed;
+    }
+  } else {
+    // Cảm biến chung (Chipset, System Board, Power Supply)
+    if (temp <= 50) {
+      demandedSpeed = minFanSpeed;
+    } else if (temp <= 70) {
+      const p = (temp - 50) / 20;
+      demandedSpeed = minFanSpeed + p * (35 - minFanSpeed);
+    } else {
+      demandedSpeed = 60;
     }
   }
 
-  // Dự phòng nếu không tìm thấy tên cảm biến CPU
-  if (controllingTemp === 0 && temperatures.length > 0) {
-    const valid = temperatures.filter((t) => t.temperature > 0);
-    if (valid.length > 0) {
-      const maxT = valid.reduce((prev, curr) => (curr.temperature > prev.temperature ? curr : prev), valid[0]);
-      controllingTemp = maxT.temperature;
-      controllingSensor = maxT.name;
-    }
-  }
-
-  return { controllingSensor, controllingTemp, cpuMax };
+  return Math.max(minFanSpeed, Math.min(maxFanSpeed, Math.round(demandedSpeed)));
 }
 
-// Tính toán tốc độ quạt mục tiêu dựa theo đường cong nhiệt an toàn
+/**
+ * Đánh giá nhiệt độ toàn hệ thống:
+ * Chọn ra cảm biến có nhu cầu làm mát cao nhất, trả về tên cảm biến VÀ nhiệt độ thực tế chính xác của cảm biến đó.
+ */
+export function evaluateSystemThermal(
+  temperatures: TempSensor[],
+  minFanSpeed: number = 15,
+  maxFanSpeed: number = 100
+): {
+  controllingSensor: string;
+  controllingTemp: number;
+  highestDemandedSpeed: number;
+  cpuMax: number;
+} {
+  let highestDemandedSpeed = minFanSpeed;
+  let controllingSensor = "CPU";
+  let controllingTemp = 40;
+  let cpuMax = 0;
+
+  for (const sensor of temperatures) {
+    if (sensor.temperature <= 0) continue;
+
+    const nameLower = sensor.name.toLowerCase();
+    if (nameLower.includes("cpu") && sensor.temperature > cpuMax) {
+      cpuMax = sensor.temperature;
+    }
+
+    const demand = calculateSensorFanDemand(sensor, minFanSpeed, maxFanSpeed);
+    if (demand > highestDemandedSpeed || (demand === highestDemandedSpeed && nameLower.includes("cpu"))) {
+      highestDemandedSpeed = demand;
+      controllingSensor = sensor.name;
+      controllingTemp = sensor.temperature;
+    }
+  }
+
+  // Dự phòng nếu không có cảm biến hợp lệ
+  if (controllingSensor === "CPU" && controllingTemp === 40 && temperatures.length > 0) {
+    const valid = temperatures.filter((t) => t.temperature > 0);
+    if (valid.length > 0) {
+      const highest = valid.reduce((p, c) => (c.temperature > p.temperature ? c : p), valid[0]);
+      controllingSensor = highest.name;
+      controllingTemp = highest.temperature;
+      highestDemandedSpeed = calculateSensorFanDemand(highest, minFanSpeed, maxFanSpeed);
+    }
+  }
+
+  return { controllingSensor, controllingTemp, highestDemandedSpeed, cpuMax };
+}
+
+// Hàm tính toán tương thích ngược
 export function calculateSmartFanSpeed(
   controllingTemp: number,
   minFanSpeed: number,
   maxFanSpeed: number
 ): number {
-  let speed = minFanSpeed;
-
-  if (controllingTemp <= 40) {
-    speed = minFanSpeed;
-  } else if (controllingTemp <= 50) {
-    // 40°C -> 50°C: Tăng mượt từ minFanSpeed (vd: 15%) lên 25%
-    const progress = (controllingTemp - 40) / 10;
-    speed = Math.round(minFanSpeed + progress * (25 - minFanSpeed));
-  } else if (controllingTemp <= 60) {
-    // 50°C -> 60°C: Tăng mượt từ 25% lên 38%
-    const progress = (controllingTemp - 50) / 10;
-    speed = Math.round(25 + progress * (38 - 25));
-  } else if (controllingTemp <= 70) {
-    // 60°C -> 70°C: Tăng mượt từ 38% lên 55%
-    const progress = (controllingTemp - 60) / 10;
-    speed = Math.round(38 + progress * (55 - 38));
-  } else if (controllingTemp <= 80) {
-    // 70°C -> 80°C: Tăng mạnh từ 55% lên 80%
-    const progress = (controllingTemp - 70) / 10;
-    speed = Math.round(55 + progress * (80 - 55));
-  } else {
-    // > 80°C: Ngưỡng nhiệt nguy hiểm -> 100% quạt
-    speed = 100;
-  }
-
-  return Math.max(minFanSpeed, Math.min(maxFanSpeed, speed));
+  return calculateSensorFanDemand(
+    { name: "CPU", temperature: controllingTemp, status: "OK" },
+    minFanSpeed,
+    maxFanSpeed
+  );
 }
 
 export function getSmartAutoState(): SmartAutoState {
@@ -130,6 +211,7 @@ export function setSmartAutoEnabled(enabled: boolean): SmartAutoState {
   setSetting("smart_auto_enabled", enabled ? "true" : "false");
   if (!enabled) {
     lastAppliedSpeed = -1;
+    highTempHoldCycles = 0;
   } else {
     // Kích hoạt ngay 1 chu kỳ kiểm tra khi người dùng bật
     setTimeout(() => {
@@ -151,29 +233,42 @@ export async function runSmartAutoTick(): Promise<void> {
       return;
     }
 
-    const { controllingSensor, controllingTemp } = evaluateSystemThermal(thermal.temperatures);
-    const rawTarget = calculateSmartFanSpeed(controllingTemp, config.minFanSpeed, config.maxFanSpeed);
+    const { controllingSensor, controllingTemp, highestDemandedSpeed } = evaluateSystemThermal(
+      thermal.temperatures,
+      config.minFanSpeed,
+      config.maxFanSpeed
+    );
 
-    let nextSpeed = rawTarget;
+    let nextSpeed = highestDemandedSpeed;
     let isCoolingDown = false;
 
     // Cơ chế Hysteresis & Làm mượt tốc độ quạt (chống rú giật)
     if (lastAppliedSpeed > 0) {
-      if (rawTarget > lastAppliedSpeed) {
-        // Nhiệt độ tăng: tăng tốc độ ngay tức thì để bảo vệ máy
-        nextSpeed = rawTarget;
-      } else if (rawTarget < lastAppliedSpeed) {
-        // Nhiệt độ giảm: hạ tốc độ từ từ (tối đa 5% mỗi chu kỳ)
+      if (highestDemandedSpeed > lastAppliedSpeed) {
+        // Nhiệt độ tăng: Tăng tốc ngay lập tức để giải nhiệt
+        highTempHoldCycles = 2; // Giữ ít nhất 2 chu kỳ (~30s) trước khi cho phép hạ tốc độ
+        nextSpeed = highestDemandedSpeed;
+      } else if (highestDemandedSpeed < lastAppliedSpeed) {
+        // Nhiệt độ giảm:
         isCoolingDown = true;
-        const maxDrop = 5;
-        nextSpeed = Math.max(rawTarget, lastAppliedSpeed - maxDrop);
+        if (highTempHoldCycles > 0) {
+          // Vẫn trong thời gian giữ nhiệt (dwell time): giữ nguyên tốc độ quạt
+          highTempHoldCycles--;
+          nextSpeed = lastAppliedSpeed;
+        } else {
+          // Hạ dần từ từ: mỗi chu kỳ hạ tối đa 3% PWM để tránh rú quạt thất thường
+          const maxDrop = 3;
+          nextSpeed = Math.max(highestDemandedSpeed, lastAppliedSpeed - maxDrop);
+        }
+      } else {
+        highTempHoldCycles = 0;
       }
 
       const diff = Math.abs(nextSpeed - lastAppliedSpeed);
       const elapsed = Date.now() - lastAppliedTime;
 
-      // Bỏ qua nếu chênh lệch < 3% và chưa qua 60 giây (tránh spam lệnh SSH liên tục)
-      if (diff < 3 && elapsed < 60000 && !isCoolingDown) {
+      // Deadband: Nếu chênh lệch <= 1% hoặc chênh lệch <= 2% trong vòng 45s (và không phải đang hạ nhiệt sâu)
+      if (diff <= 1 || (diff <= 2 && elapsed < 45000 && !isCoolingDown)) {
         runtimeState.targetSpeed = lastAppliedSpeed;
         runtimeState.controllingSensor = controllingSensor;
         runtimeState.controllingTemp = controllingTemp;

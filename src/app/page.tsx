@@ -24,7 +24,6 @@ import {
   Plus,
   Play,
   Activity,
-  RefreshCw,
 } from "lucide-react";
 import { ServerThermalData, FanPreset, LogEntry } from "@/types";
 import { useTranslation } from "../contexts/LanguageContext";
@@ -53,10 +52,9 @@ export default function DashboardPage() {
   const [newPresetName, setNewPresetName] = useState("");
   const [newPresetDesc, setNewPresetDesc] = useState("");
 
-  // Smart Thermal Auto & Default Restore states
+  // Smart Thermal Auto states
   const [smartAutoEnabled, setSmartAutoEnabled] = useState(false);
   const [isTogglingAuto, setIsTogglingAuto] = useState(false);
-  const [isRestoringDefault, setIsRestoringDefault] = useState(false);
 
   const addLog = useCallback(
     (
@@ -207,57 +205,6 @@ export default function DashboardPage() {
       );
     } finally {
       setIsTogglingAuto(false);
-    }
-  };
-
-  // Restore Native iLO Default Control (fan p 0..5 max 255)
-  const handleRestoreDefault = async () => {
-    if (!confirm(t("dashboard.restoreDefault.confirm"))) return;
-    setIsRestoringDefault(true);
-    addLog({ key: "dashboard.restoreDefault.applying" }, "info");
-    try {
-      const res = await fetch("/api/ilo/fans", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "restore_default" }),
-      });
-      const result = await res.json();
-      if (!res.ok) {
-        throw new Error(result.error || "Lỗi khôi phục mặc định iLO");
-      }
-      if (Array.isArray(result.logs)) {
-        result.logs.forEach(
-          (
-            item:
-              | string
-              | {
-                  key: string;
-                  params?: Record<string, string | number>;
-                  type?: "info" | "success" | "warn" | "error";
-                }
-          ) => {
-            if (typeof item === "string") {
-              addLog(item, "info");
-            } else if (item && item.key) {
-              addLog({ key: item.key, params: item.params }, item.type || "info");
-            }
-          }
-        );
-      }
-      addLog({ key: "dashboard.logs.items.restoreDefaultSuccess" }, "success");
-      setSmartAutoEnabled(false);
-      setPendingSpeeds({});
-      await fetchThermal();
-    } catch (err: unknown) {
-      addLog(
-        {
-          key: "dashboard.logs.items.operationError",
-          params: { error: err instanceof Error ? err.message : String(err) },
-        },
-        "error"
-      );
-    } finally {
-      setIsRestoringDefault(false);
     }
   };
 
@@ -802,25 +749,13 @@ export default function DashboardPage() {
                   </div>
                 </div>
 
-                <div className="flex items-center space-x-2">
-                  <button
-                    onClick={handleRestoreDefault}
-                    disabled={isRestoringDefault}
-                    title={t("dashboard.restoreDefault.tooltip")}
-                    className="px-3 py-1.5 rounded-xl bg-amber-500/10 hover:bg-amber-500/20 text-xs font-semibold text-amber-400 border border-amber-500/30 flex items-center space-x-1.5 transition-all disabled:opacity-50"
-                  >
-                    <RefreshCw className={`w-3.5 h-3.5 ${isRestoringDefault ? "animate-spin" : ""}`} />
-                    <span>{t("dashboard.restoreDefault.button")}</span>
-                  </button>
-
-                  <button
-                    onClick={() => setShowPresetModal(true)}
-                    className="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition-all"
-                  >
-                    <Plus className="w-3.5 h-3.5" />
-                    <span>{t("dashboard.presets.addCustomPreset")}</span>
-                  </button>
-                </div>
+                <button
+                  onClick={() => setShowPresetModal(true)}
+                  className="px-3 py-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-xs font-semibold text-emerald-400 border border-emerald-500/30 flex items-center space-x-1.5 transition-all"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>{t("dashboard.presets.addCustomPreset")}</span>
+                </button>
               </div>
 
               {/* Preset Cards */}

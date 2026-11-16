@@ -165,12 +165,6 @@
       "coolingDown": "Nhiệt độ đã hạ nhiệt, quạt đang giảm dần...",
       "curveTip": "Đường cong nhiệt thông minh: Tự động tăng tốc khi CPU > 50°C và giảm về mức êm ái khi nhàn rỗi."
     },
-    "restoreDefault": {
-      "button": "Mở trần iLO Gốc (Max 255)",
-      "tooltip": "Dỡ bỏ giới hạn PWM (fan p max 255) trả quyền cho thuật toán firmware gốc của iLO (Cảnh báo: quạt có thể lên 100% nếu có cạc PCIe ngoài)",
-      "confirm": "⚠️ CẢNH BÁO QUẠT 100%:\n\nNếu server của bạn có gắn cạc PCIe hoặc ổ SSD ngoài (không phải chuẩn HP), firmware gốc của iLO 4 sẽ tự động ép quạt lên 80% - 100% để phòng ngừa quá nhiệt!\n\nNếu bạn muốn máy chạy ÊM ÁI TỰ ĐỘNG THEO NHIỆT ĐỘ, vui lòng dùng tính năng 'Smart Thermal Auto' thay vì mở trần iLO gốc.\n\nBạn có chắc chắn muốn mở trần quạt về mặc định iLO (Max 255) không?",
-      "applying": "Đang gửi SSH mở trần quạt về mặc định iLO (Max 255)..."
-    },
     "presets": {
       "title": "Chế độ Cài đặt sẵn (Fan Presets)",
       "description": "Chuyển đổi profile âm lượng và làm mát chỉ với 1 cú nhấp chuột",
@@ -241,8 +235,6 @@
         "fanConfigured": "Đã thiết lập Quạt #{index} MAX = {rawVal} (~{speed}%)",
         "fansCompleted": "Hoàn tất điều khiển {count} quạt trên máy chủ iLO!",
         "sshError": "[SSH-LỖI] {error}",
-        "restoreDefaultSuccess": "Thành công! Đã khôi phục toàn bộ 6 quạt về chế độ tự động của iLO (Max 255)",
-        "fanRestoredDefault": "Quạt #{index}: Đã mở trần giới hạn về mặc định iLO (Max 255)",
         "smartAutoEnabled": "Đã bật Chế độ Tự động Thông minh (Smart Thermal Auto)",
         "smartAutoDisabled": "Đã tắt Chế độ Tự động Thông minh, chuyển sang điều khiển thủ công",
         "smartAutoAdjusted": "Smart Auto: Tự động điều chỉnh quạt sang {speed}% theo nhiệt độ {sensor} ({temp}°C)"

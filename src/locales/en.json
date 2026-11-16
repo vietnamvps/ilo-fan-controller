@@ -165,12 +165,6 @@
       "coolingDown": "System cooled down, fan speed decreasing gradually...",
       "curveTip": "Smart thermal curve: Automatically increases speed when CPU > 50°C and returns to whisper-quiet when idle."
     },
-    "restoreDefault": {
-      "button": "Uncap Native iLO (Max 255)",
-      "tooltip": "Remove PWM limits (fan p max 255) and hand control to HP iLO firmware (Warning: fans may ramp to 100% if 3rd-party PCIe cards are present)",
-      "confirm": "⚠️ WARNING: 100% FAN SPEED:\n\nIf your server contains 3rd-party PCIe cards or non-HP SSDs, native iLO 4 firmware will automatically ramp fans to 80% - 100% as a thermal precaution!\n\nIf you want quiet, dynamic temperature-based fan control, please use 'Smart Thermal Auto' instead.\n\nAre you sure you want to uncap fans to native iLO default (Max 255)?",
-      "applying": "Sending SSH commands to uncap fans to iLO default (Max 255)..."
-    },
     "presets": {
       "title": "Quick Cooling Presets",
       "description": "Select pre-configured cooling profiles to quickly switch fan curves according to actual workloads.",
@@ -241,8 +235,6 @@
         "fanConfigured": "Configured Fan #{index} MAX = {rawVal} (~{speed}%)",
         "fansCompleted": "Completed controlling {count} fans on iLO server!",
         "sshError": "[SSH-ERROR] {error}",
-        "restoreDefaultSuccess": "Success! All 6 fans restored to native iLO default automatic mode (Max 255)",
-        "fanRestoredDefault": "Fan #{index}: Limit un-capped to iLO default (Max 255)",
         "smartAutoEnabled": "Activated Smart Thermal Auto Mode",
         "smartAutoDisabled": "Deactivated Smart Thermal Auto Mode, switched to manual control",
         "smartAutoAdjusted": "Smart Auto: Automatically set fans to {speed}% based on {sensor} ({temp}°C)"
